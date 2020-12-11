@@ -19,6 +19,7 @@ Encoding: UTF-8
 Imports:
     assertthat,
     DGEobj  (>= 1.0),
+    DGEobj.utils, 
     dplyr   (>= 0.8),
     ggplot2 (>= 3.0),
     ggrepel,
@@ -27,24 +28,15 @@ Imports:
     magrittr,
     matrixStats,
     stats,
-    statmod,
     stringr,
     tibble,
     tidyr,
+    utils,
     edgeR,
-    IHW,
-    limma  (>= 3.38),
-    qvalue,
-    RNASeqPower,
-    sva,
-    zFPKM
+    limma  (>= 3.38)
 Suggests:
     knitr,
     rmarkdown,
-    testthat,
-    org.Hs.eg.db,
-    org.Mm.eg.db,
-    org.Rn.eg.db,
-    org.Cf.eg.db
+    testthat
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr

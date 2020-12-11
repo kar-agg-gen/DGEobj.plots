@@ -1,0 +1,50 @@
+Package: DGEobj.plots
+Type:    Package
+Title:   Differential Gene Expression (DGE) Analysis Plots
+Version: 1.0.0.9000
+Description: 
+    Provides a function toolkit to facilitate reproducible RNA-Seq DGE
+    analysis by standardizing several types of common plots. The DGE Plotting tools
+    are suitable for downstream analysis visualizations and include: profilePlot,
+    volcanoPlot, comparePlot, plotPvalHist, ggplotMDS, and others.
+Authors@R: 
+    c(person("John", "Thompson", role = "aut", email = "jrt@thompsonclan.org"),
+      person("Connie", "Brett",  role = c("aut", "cre"), email = "connie@aggregate-genius.com"),
+      person("Isaac", "Neuhaus", role = "aut", email = "isaac.neuhaus@bms.com"),
+      person("Ryan", "Thompson", role = "aut", email = "rct@thompsonclan.org"))
+Depends:  R (>= 3.5.0)
+License:  GPL-3
+Language: en-US
+Encoding: UTF-8
+Imports:
+    assertthat,
+    DGEobj  (>= 1.0),
+    dplyr   (>= 0.8),
+    ggplot2 (>= 3.0),
+    ggrepel,
+    grid,
+    igraph,
+    magrittr,
+    matrixStats,
+    stats,
+    statmod,
+    stringr,
+    tibble,
+    tidyr,
+    edgeR,
+    IHW,
+    limma  (>= 3.38),
+    qvalue,
+    RNASeqPower,
+    sva,
+    zFPKM
+Suggests:
+    knitr,
+    rmarkdown,
+    testthat,
+    org.Hs.eg.db,
+    org.Mm.eg.db,
+    org.Rn.eg.db,
+    org.Cf.eg.db
+RoxygenNote: 7.1.1
+VignetteBuilder: knitr

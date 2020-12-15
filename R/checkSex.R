@@ -147,6 +147,7 @@ checkSex <- function(dgeObj,
 
         # Filter to specified chr
         if (!is.null(chr)) {
+            Chromosome <- NULL #binding variable Chromosome local to function
             geneData %<>%
                 as.data.frame() %>%
                 tibble::rownames_to_column(var = "geneid") %>%
@@ -178,7 +179,7 @@ checkSex <- function(dgeObj,
         as.data.frame() %>%
         tibble::rownames_to_column(var = "geneid") %>%
         dplyr::mutate(meanLogCPM = meanLogCPM) %>%
-        dplyr::arrange(desc(meanLogCPM)) %>%
+        dplyr::arrange(dplyr::desc(meanLogCPM)) %>%
         dplyr::mutate(meanLogCPM = NULL) %>%
         tibble::column_to_rownames(var = "geneid")
     gene <- rownames(log2CPM)[1]

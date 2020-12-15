@@ -241,9 +241,11 @@ obsPlot <- function(data,
     # Build tall data
     groupdf <- data.frame(cbind(Samples = sampNames, Block = block), stringsAsFactors = FALSE)
     data[[plotBy]] = as.character(obsNames)
-    data %<>% tidyr::gather(key = "Samples", value = "valType", -Gene, na.rm = TRUE)
+    data <- data %>%
+        tidyr::gather(key = "Samples", value = "valType", -Gene, na.rm = TRUE)
     # Attach the group info
-    data %<>% dplyr::left_join(groupdf)
+    data <- data %>%
+        dplyr::left_join(groupdf)
     data$Block <- factor(data$Block, levels = blockOrder)
 
     # Plot code

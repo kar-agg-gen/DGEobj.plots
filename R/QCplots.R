@@ -116,7 +116,8 @@ QCplots <- function(qcdata,
     }
 
     # Convert first col to rownames and transpose
-    qcdata %<>% column_to_rownames(var = colnames(qcdata)[1]) %>%
+    qcdata <- qcdata %>%
+        column_to_rownames(var = colnames(qcdata)[1]) %>%
         t() %>%
         as.data.frame() %>%
         rownames_to_column(var = "Sample")

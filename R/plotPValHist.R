@@ -43,7 +43,8 @@ plotPvalHist <- function(P.Val,
                          fill = "dodgerblue3") {
 
     if (is.matrix(P.Val)) {
-        P.Val %<>% as.data.frame
+        P.Val <- P.Val %>%
+            as.data.frame
     }
 
     NumSamples <- ncol(P.Val)
@@ -51,7 +52,8 @@ plotPvalHist <- function(P.Val,
 
     # Set up Tall format
     P.Val$GeneID = rownames(P.Val)
-    P.Val %<>% tidyr::gather(key = "Levels", value = "Pval", -GeneID)
+    P.Val <- P.Val %>%
+        tidyr::gather(key = "Levels", value = "Pval", -GeneID)
 
     if (facet) {
         numcol <- 3

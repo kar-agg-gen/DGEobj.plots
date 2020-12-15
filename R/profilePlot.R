@@ -200,8 +200,10 @@ profilePlot <- function(contrastDF,
     contrastDF$group[DEup] <- "Increased"
     contrastDF$group[DEdn] <- "Decreased"
     contrastDF$group[DEnot] <- "No Change"
-    contrastDF %<>% dplyr::left_join(ssc)
-    contrastDF$group %<>% factor(levels = c("Increased", "Decreased", "No Change"))
+    contrastDF <- contrastDF %>%
+        dplyr::left_join(ssc)
+    contrastDF$group <- contrastDF$group %>%
+        factor(levels = c("Increased", "Decreased", "No Change"))
 
     # Set an order field to force plotting of NoChange first
     contrastDF$order <- NA

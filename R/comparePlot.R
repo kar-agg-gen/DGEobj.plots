@@ -196,8 +196,10 @@ comparePlot <- function(compareDF,
             compareDF$group[xindx] = "X Unique"
             compareDF$group[yindx] = "Y Unique"
             compareDF$group[neitherindx] = "Not Significant"
-            compareDF %<>% dplyr::left_join(ssc)
-            compareDF$group %<>% factor(levels = c("Common", "X Unique", "Y Unique", "Not Significant"))
+            compareDF <- compareDF %>%
+                dplyr::left_join(ssc)
+            compareDF$group <- compareDF$group %>%
+                factor(levels = c("Common", "X Unique", "Y Unique", "Not Significant"))
 
             # Set an order field to control order of plotting
             # Plot order is 1) Not Significant plotted first, 2) randomly plot X and Y Unique
@@ -355,10 +357,12 @@ comparePrep <- function(contrastList,
                             msg = "No common gene IDs were found between the two dataframes in contrastList.")
 
     # Filter both tables to the same set of genes in the same order
-    tt1 %<>% rownames_to_column(var = "geneid") %>%
+    tt1 <- tt1 %>%
+        rownames_to_column(var = "geneid") %>%
         dplyr::filter(geneid %in% commonIDs) %>%
         dplyr::arrange(geneid)
-    tt2 %<>% rownames_to_column(var = "geneid") %>%
+    tt2 <- tt2 %>%
+        rownames_to_column(var = "geneid") %>%
         dplyr::filter(geneid %in% commonIDs) %>%
         dplyr::arrange(geneid)
 

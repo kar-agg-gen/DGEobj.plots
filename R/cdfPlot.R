@@ -145,7 +145,8 @@ cdfPlot <- function(contrastDF,
 
     # Combo PLOT: full data inset, most significant data in main plot
     # Rank by p-value
-    contrastDF %<>% dplyr::arrange(!!sym(pvalCol))
+    contrastDF <- contrastDF %>%
+        dplyr::arrange(!!sym(pvalCol))
     contrastDF$Rank <- c(1:nrow(contrastDF))
 
     # Let's plot the p-value subsets
@@ -156,8 +157,10 @@ cdfPlot <- function(contrastDF,
     contrastDF$group <- NA
     contrastDF$group[Sig] <- "Significant"
     contrastDF$group[NotSig] <- "Not Significant"
-    contrastDF %<>% dplyr::left_join(ssc)
-    contrastDF$group %<>% factor(levels = c("Significant", "Not Significant"))
+    contrastDF <- contrastDF %>%
+        dplyr::left_join(ssc)
+    contrastDF$group <- contrastDF$group %>%
+        factor(levels = c("Significant", "Not Significant"))
 
     # Set an order field to force plotting of NotSig first
     contrastDF$order <- NA

@@ -50,14 +50,14 @@ plotNorm <- function(DGEdata,
     log2CPM_tmm <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize)
 
     tall <- log2cpm %>%
-        as.data.frame %>%
-        tibble::rownames_to_column(var = "GeneID") %>%
+        as.data.frame
+    tall <- data.frame("GeneID" = row.names(tall), tall, row.names = NULL) %>%
         tidyr::gather(SampleID, Log2CPM, -GeneID)
     tall$Normalization = "none"
 
     tall_tmm <- log2CPM_tmm %>%
-        as.data.frame %>%
-        tibble::rownames_to_column(var = "GeneID") %>%
+        as.data.frame
+    tall_tmm <- data.frame("GeneID" = row.names(tall_tmm), tall_tmm, row.names = NULL) %>%
         tidyr::gather(SampleID, Log2CPM, -GeneID)
     tall_tmm$Normalization = toupper(normalize)
 

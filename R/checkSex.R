@@ -81,21 +81,24 @@ checkSex <- function(dgeObj,
     # Add labelCol and sexCol data as needed
     if (!missing(labelCol) & !missing(sexCol)) {
 
-        dtemp %<>% dplyr::select(rowname, labelCol = labelCol, sexCol = sexCol)
+        dtemp <- dtemp %>%
+            dplyr::select(rowname, labelCol = labelCol, sexCol = sexCol)
         plotDat <- dplyr::left_join(plotDat, dtemp, by = "rowname")
         colnames(plotDat) <- c("SampID", x$genename, y$genename, labelCol, sexCol)
         sexPlot <- ggplot(plotDat, aes_string(x = x$genename, y = y$genename, label = labelCol, color = sexCol))
 
     } else if (!missing(labelCol) & missing(sexCol)) {
 
-        dtemp %<>% dplyr::select(rowname, label = labelCol)
+        dtemp <- dtemp %>%
+            dplyr::select(rowname, label = labelCol)
         plotDat <- dplyr::left_join(plotDat, dtemp, by = "rowname")
         colnames(plotDat) <- c("SampID", x$genename, y$genename, labelCol)
         sexPlot <- ggplot(plotDat, aes_string(x = x$genename, y = y$genename, label = labelCol))
 
     } else if (missing(labelCol) & !missing(sexCol)) {
 
-        dtemp %<>% dplyr::select(rowname, sexCol = sexCol)
+        dtemp <- dtemp %>%
+            dplyr::select(rowname, sexCol = sexCol)
         plotDat <- dplyr::left_join(plotDat, dtemp, by = "rowname")
         colnames(plotDat) <- c("SampID", x$genename, y$genename, sexCol)
         sexPlot <- ggplot(plotDat, aes_string(x = x$genename, y = y$genename, color = sexCol))
@@ -146,7 +149,6 @@ checkSex <- function(dgeObj,
 
         # Filter to specified chr
         if (!is.null(chr)) {
-            Chromosome <- NULL #binding variable Chromosome local to function
             geneData <- subset(geneData, toupper(Chromosome) %in% chr)
         }
 

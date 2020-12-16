@@ -61,7 +61,8 @@ plotNorm <- function(DGEdata,
         tidyr::gather(SampleID, Log2CPM, -GeneID)
     tall_tmm$Normalization = toupper(normalize)
 
-    tall %<>% rbind(tall_tmm)
+    tall <- tall %>%
+        rbind(tall_tmm)
 
     if (tolower(plotType) == "density") {
         resultPlot <- ggplot(tall, aes(x = Log2CPM, color = SampleID)) +

@@ -357,12 +357,12 @@ comparePrep <- function(contrastList,
                             msg = "No common gene IDs were found between the two dataframes in contrastList.")
 
     # Filter both tables to the same set of genes in the same order
+    tt1 <- data.frame("geneid" = row.names(tt1), tt1, row.names = NULL)
+    tt2 <- data.frame("geneid" = row.names(tt2), tt2, row.names = NULL)
     tt1 <- tt1 %>%
-        rownames_to_column(var = "geneid") %>%
         dplyr::filter(geneid %in% commonIDs) %>%
         dplyr::arrange(geneid)
     tt2 <- tt2 %>%
-        rownames_to_column(var = "geneid") %>%
         dplyr::filter(geneid %in% commonIDs) %>%
         dplyr::arrange(geneid)
 

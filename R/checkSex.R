@@ -33,7 +33,6 @@
 #' @importFrom assertthat assert_that
 #' @importFrom edgeR calcNormFactors
 #' @importFrom dplyr filter select left_join mutate arrange
-#' @importFrom tibble rownames_to_column column_to_rownames
 #'
 #' @export
 checkSex <- function(dgeObj,
@@ -72,13 +71,12 @@ checkSex <- function(dgeObj,
 
     idx <- rownames(log2CPM) %in% c(x$gene, y$gene)
     plotDat <- t(log2CPM[idx,]) %>%
-        as.data.frame %>%
-        tibble::rownames_to_column(var = "rowname")
+        as.data.frame
+    plotDat <- data.frame("rowname" = row.names(plotDat), plotDat, row.names = NULL)
 
     # Add sample identifier data
-    dtemp <- DGEobj::getItem(dgeObj, "design_orig") %>%
-        tibble::rownames_to_column(var = "rowname")
-
+    dtemp <- DGEobj::getItem(dgeObj, "design_orig")
+    dtemp <- data.frame("rowname" = row.names(dtemp), dtemp, row.names = NULL)
     # Add labelCol and sexCol data as needed
     if (!missing(labelCol) & !missing(sexCol)) {
 
@@ -150,11 +148,7 @@ checkSex <- function(dgeObj,
 
         # Filter to specified chr
         if (!is.null(chr)) {
-            geneData <- geneData %>%
-                as.data.frame() %>%
-                tibble::rownames_to_column(var = "geneid") %>%
-                dplyr::filter(toupper(Chromosome) %in% toupper(chr)) %>%
-                tibble::column_to_rownames(var = "geneid")
+            geneData <- subset(geneData, toupper(Chromosome) %in% chr)
         }
 
         log2CPM_mat <- log2CPM[rownames(log2CPM) %in% rownames(geneData),]
@@ -177,13 +171,7 @@ checkSex <- function(dgeObj,
 
     # Get the top expressed gene data
     # Calc mean and sort on mean descending
-    log2CPM  <- log2CPM_mat %>%
-        as.data.frame() %>%
-        tibble::rownames_to_column(var = "geneid") %>%
-        dplyr::mutate(meanLogCPM = meanLogCPM) %>%
-        dplyr::arrange(desc(meanLogCPM)) %>%
-        dplyr::mutate(meanLogCPM = NULL) %>%
-        tibble::column_to_rownames(var = "geneid")
+    log2CPM <- as.data.frame(log2CPM_mat[order(meanLogCPM, decreasing = T),])
     gene <- rownames(log2CPM)[1]
     genename <- geneData$GeneName[rownames(geneData) == gene]
 

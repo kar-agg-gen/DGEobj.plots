@@ -7,7 +7,7 @@
 #' at the median and +/- n SDs based on the hlineSD argument. These are
 #' statistical reference points, NOT pass/fail limits.
 #'
-#' @param qcdata A dataframe or tibble with metric names in the first column and
+#' @param qcdata A dataframe with metric names in the first column and
 #'   samples in columns 2-n.  Each row is a different QC metric. (Required)
 #' @param metricNames A list of metrics to plot.  Values must exist in column 1
 #'   of the data frame. (Required)
@@ -116,11 +116,11 @@ QCplots <- function(qcdata,
     }
 
     # Convert first col to rownames and transpose
+    rownames(qcdata) <- qcdata[[1]]
     qcdata <- qcdata %>%
-        column_to_rownames(var = colnames(qcdata)[1]) %>%
         t() %>%
-        as.data.frame() %>%
-        rownames_to_column(var = "Sample")
+        as.data.frame()
+    qcdata <- data.frame("Sample" = row.names(qcdata), qcdata, row.names = NULL)
 
     assertthat::assert_that(all(metricNames %in% colnames(qcdata)),
                             msg = "All of the specified metricNames must be included in the colnames of qcdata.")

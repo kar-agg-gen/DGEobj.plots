@@ -23,8 +23,6 @@
 #'
 #' @import magrittr ggplot2
 #' @importFrom stringr str_c
-#' @importFrom tidyr gather
-#' @importFrom tibble rownames_to_column
 #' @importFrom DGEobj getItem
 #' @importFrom assertthat assert_that
 #'

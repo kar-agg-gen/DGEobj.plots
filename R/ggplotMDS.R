@@ -327,8 +327,6 @@ ggplotMDS <- function(DGEdata,
 #' @import ggplot2 magrittr
 #' @importFrom assertthat assert_that
 #' @importFrom limma plotMDS
-#' @importFrom matrixStats colVars
-#' @importFrom tibble tibble
 #' @importFrom stats cmdscale
 #'
 #' @export

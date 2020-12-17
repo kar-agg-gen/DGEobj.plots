@@ -29,7 +29,6 @@
 #' }
 #'
 #' @import ggplot2
-#' @importFrom tidyr gather
 #' @importFrom dplyr filter
 #'
 #' @export

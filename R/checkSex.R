@@ -33,7 +33,6 @@
 #' @importFrom assertthat assert_that
 #' @importFrom edgeR calcNormFactors
 #' @importFrom dplyr filter select left_join mutate arrange
-#' @importFrom tibble rownames_to_column column_to_rownames
 #'
 #' @export
 checkSex <- function(dgeObj,

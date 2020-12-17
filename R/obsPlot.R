@@ -95,7 +95,6 @@
 #'
 #' @import ggplot2 magrittr
 #' @importFrom dplyr left_join
-#' @importFrom tidyr gather
 #' @importFrom assertthat assert_that
 #'
 #' @export

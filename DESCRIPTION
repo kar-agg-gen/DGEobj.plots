@@ -26,11 +26,8 @@ Imports:
     grid,
     igraph,
     magrittr,
-    matrixStats,
     stats,
     stringr,
-    tibble,
-    tidyr,
     utils,
     edgeR,
     limma  (>= 3.38)

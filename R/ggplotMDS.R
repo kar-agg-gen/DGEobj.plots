@@ -327,7 +327,7 @@ ggplotMDS <- function(DGEdata,
 #' @import ggplot2 magrittr
 #' @importFrom assertthat assert_that
 #' @importFrom limma plotMDS
-#' @importFrom stats cmdscale
+#' @importFrom stats cmdscale var
 #'
 #' @export
 MDS_var_explained <- function(mds,
@@ -353,7 +353,7 @@ MDS_var_explained <- function(mds,
         magrittr::set_colnames(stringr::str_c("Dim", seq_len(ncol(.)))) %>%
         as.data.frame
 
-    var_vec <- unname(apply((mdsvals %>% as.matrix), 2, var)) %>%
+    var_vec <- unname(apply((mdsvals %>% as.matrix), 2, stats::var)) %>%
         magrittr::divide_by(sum(.))
     var_explained <- data.frame(var    = var_vec,
                                 cumvar = cumsum(var_vec),

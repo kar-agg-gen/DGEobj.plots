@@ -23,8 +23,6 @@
 #'
 #' @import magrittr ggplot2
 #' @importFrom stringr str_c
-#' @importFrom tidyr gather
-#' @importFrom tibble rownames_to_column
 #' @importFrom DGEobj getItem
 #' @importFrom assertthat assert_that
 #'
@@ -46,19 +44,34 @@ plotNorm <- function(DGEdata,
         counts <- DGEobj::getItem(DGEdata, "counts")
     }
 
-    log2cpm <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = "none")
-    log2CPM_tmm <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize)
+    log2cpm <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = "none") %>%
+        as.data.frame
+    log2CPM_tmm <- DGEobj.utils::convertCounts(counts, unit = "cpm", log = TRUE, normalize = normalize) %>%
+        as.data.frame
 
-    tall <- log2cpm %>%
-        as.data.frame %>%
-        tibble::rownames_to_column(var = "GeneID") %>%
-        tidyr::gather(SampleID, Log2CPM, -GeneID)
+    log2cpm_colnames <- colnames(log2cpm)
+    tall <- data.frame("GeneID" = row.names(log2cpm), log2cpm, row.names = NULL)
+
+    tall <-  stats::reshape(data          = tall,
+                            idvar         = "GeneID",
+                            varying       = log2cpm_colnames,
+                            v.names       = "Log2CPM",
+                            direction     = "long",
+                            timevar       = "SampleID",
+                            times         = log2cpm_colnames,
+                            new.row.names = sequence(prod(length(log2cpm_colnames), nrow(tall))))
     tall$Normalization = "none"
 
-    tall_tmm <- log2CPM_tmm %>%
-        as.data.frame %>%
-        tibble::rownames_to_column(var = "GeneID") %>%
-        tidyr::gather(SampleID, Log2CPM, -GeneID)
+    log2cpm_tmm_colnames <- colnames(log2CPM_tmm)
+    tall_tmm <- data.frame("GeneID" = row.names(log2CPM_tmm), log2CPM_tmm, row.names = NULL)
+    tall_tmm <-  stats::reshape(data          = tall_tmm,
+                                idvar         = "GeneID",
+                                varying       = log2cpm_tmm_colnames,
+                                v.names       = "Log2CPM",
+                                direction     = "long",
+                                timevar       = "SampleID",
+                                times         = log2cpm_tmm_colnames,
+                                new.row.names = sequence(prod(length(log2cpm_tmm_colnames), nrow(tall_tmm))))
     tall_tmm$Normalization = toupper(normalize)
 
     tall <- tall %>%

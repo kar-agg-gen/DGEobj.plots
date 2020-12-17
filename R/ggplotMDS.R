@@ -327,8 +327,6 @@ ggplotMDS <- function(DGEdata,
 #' @import ggplot2 magrittr
 #' @importFrom assertthat assert_that
 #' @importFrom limma plotMDS
-#' @importFrom matrixStats colVars
-#' @importFrom tibble tibble
 #' @importFrom stats cmdscale
 #'
 #' @export
@@ -355,12 +353,11 @@ MDS_var_explained <- function(mds,
         magrittr::set_colnames(stringr::str_c("Dim", seq_len(ncol(.)))) %>%
         as.data.frame
 
-    var_explained <- tibble::tibble(var = mdsvals %>%
-                                        as.matrix %>%
-                                        matrixStats::colVars() %>%
-                                        magrittr::divide_by(sum(.)),
-                                    cumvar = cumsum(var),
-                                    dim = seq_along(var))
+    var_vec <- unname(apply((mdsvals %>% as.matrix), 2, var)) %>%
+        magrittr::divide_by(sum(.))
+    var_explained <- data.frame(var    = var_vec,
+                                cumvar = cumsum(var_vec),
+                                dim    = seq_along(var_vec))
 
     idx <- var_explained$cumvar < cumVarLimit
     if (sum(idx) < topN) {

@@ -34,7 +34,7 @@ QCplots(
 )
 }
 \arguments{
-\item{qcdata}{A dataframe or tibble with metric names in the first column and
+\item{qcdata}{A dataframe with metric names in the first column and
 samples in columns 2-n.  Each row is a different QC metric. (Required)}
 
 \item{metricNames}{A list of metrics to plot.  Values must exist in column 1

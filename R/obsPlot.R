@@ -241,8 +241,15 @@ obsPlot <- function(data,
     # Build tall data
     groupdf <- data.frame(cbind(Samples = sampNames, Block = block), stringsAsFactors = FALSE)
     data[[plotBy]] = as.character(obsNames)
-    data <- data %>%
-        tidyr::gather(key = "Samples", value = "valType", -Gene, na.rm = TRUE)
+    data <-  stats::reshape(data          = data,
+                            idvar         = plotBy,
+                            varying       = sampNames,
+                            v.names       = "valType",
+                            direction     = "long",
+                            timevar       = "Samples",
+                            times         = sampNames,
+                            new.row.names = sequence(prod(length(sampNames), nrow(data))))
+    data <- data[complete.cases(data$valType), ]
     # Attach the group info
     data <- data %>%
         dplyr::left_join(groupdf)

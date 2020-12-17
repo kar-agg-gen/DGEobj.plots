@@ -52,8 +52,14 @@ plotPvalHist <- function(P.Val,
 
     # Set up Tall format
     P.Val$GeneID = rownames(P.Val)
-    P.Val <- P.Val %>%
-        tidyr::gather(key = "Levels", value = "Pval", -GeneID)
+    P.Val <-  stats::reshape(data          = P.Val,
+                             idvar         = "GeneID",
+                             varying       = SampNames,
+                             v.names       = "Pval",
+                             direction     = "long",
+                             timevar       = "Levels",
+                             times         = SampNames,
+                             new.row.names = sequence(prod(length(SampNames), nrow(P.Val))))
 
     if (facet) {
         numcol <- 3

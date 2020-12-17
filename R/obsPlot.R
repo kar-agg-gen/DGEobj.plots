@@ -96,6 +96,7 @@
 #' @import ggplot2 magrittr
 #' @importFrom dplyr left_join
 #' @importFrom assertthat assert_that
+#' @importFrom stats complete.cases
 #'
 #' @export
 obsPlot <- function(data,
@@ -248,7 +249,7 @@ obsPlot <- function(data,
                             timevar       = "Samples",
                             times         = sampNames,
                             new.row.names = sequence(prod(length(sampNames), nrow(data))))
-    data <- data[complete.cases(data$valType), ]
+    data <- data[stats::complete.cases(data$valType), ]
     # Attach the group info
     data <- data %>%
         dplyr::left_join(groupdf)

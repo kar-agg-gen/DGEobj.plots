@@ -236,7 +236,7 @@ cdfPlot <- function(contrastDF,
         scale_fill_manual(name = "Group", guide = "none", labels = ssc$group,
                           values = ssc$symbolFill) +
         geom_rect(xmin = 0, xmax = subsetRows,
-                  ymin = 0, ymax = max(dfsubset[[y]]), color = "lightblue",
+                  ymin = 0, ymax = max(contrastDFsubset[[y]]), color = "lightblue",
                   fill = "lightblue", alpha = 0.2) +
         geom_point(alpha = alpha)
 

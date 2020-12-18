@@ -33,7 +33,7 @@ test_that("cdfPlot.R: cdfPlot()", {
     expect_equal(plot_with_aes$main$layers[[3]]$geom_params$label, "this is footnote of the plot")
 
     expect_error({cdfPlot(top_table,pvalCol = "p.value")},
-                 regexp = "Specified pvalCol not found in the supplied dataframe (df).",
+                 regexp = "Specified pvalCol not found in the supplied dataframe (contrastDF).",
                  fixed = TRUE)
     expect_error({cdfPlot(top_table, symbolShape = 20)},
                  regexp = "All specified symbol arguments must be of length 2, including symbolSize, symbolShape, symbolColor, and symbolFill.")

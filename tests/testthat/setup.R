@@ -1,6 +1,6 @@
 require(testthat)
 require(stats)
-
+require(limma)
 require(DGEobj)
 require(DGEobj.plots)
 require(DGEobj.utils)

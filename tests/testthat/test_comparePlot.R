@@ -28,9 +28,9 @@ test_that("comparePlot.R: comparePlot()", {
 
     # testing assert statement
     expect_error(comparePlot(compareDat[, 1, drop = FALSE]),
-                 regexp = "Need at least two numeric columns in df.")
+                 regexp = "Need at least two numeric columns in compareDF.")
     expect_error(comparePlot(t_obj1$design),
-                 regexp = "Need at least two numeric columns in df.")
+                 regexp = "Need at least two numeric columns in compareDF.")
 
     # failing function with Symbol argument length < 4
     expect_error(comparePlot(compareDat, symbolSize = 1),

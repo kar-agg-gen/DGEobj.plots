@@ -39,6 +39,7 @@
 #'
 #' @param compareDF A dataframe with the first two columns representing the x and y variables.
 #'          Optionally add xp and yp columns to hold p-values or FDR values.
+#' @param plotType Plot type must be canvasxpress or ggplot (Default to ggplot).
 #' @param xlab X-axis label (Default to first column name)
 #' @param ylab Y-axis label (Default to second column name)
 #' @param title Plot title (Optional)
@@ -107,6 +108,7 @@
 #'
 #' @export
 comparePlot <- function(compareDF,
+                        plotType = "ggplot",
                         pThreshold = 0.01,
                         xlab = NULL, ylab = NULL,
                         title = NULL,
@@ -134,6 +136,8 @@ comparePlot <- function(compareDF,
 
     assertthat::assert_that(sum(apply(compareDF, 2, FUN = is.numeric)) >= 2,
                             msg = "Need at least two numeric columns in compareDF.")
+    assertthat::assert_that(plotType %in% c("ggplot", "canvasxpress"),
+                            msg = "Plot type must be either ggplot or canvasxpress.")
     if (!missing(symbolSize) || !missing(symbolShape) || !missing(symbolColor) || !missing(symbolFill)) {
         assertthat::assert_that(!length(symbolSize) == 4,
                                 !length(symbolShape) == 4,
@@ -142,72 +146,58 @@ comparePlot <- function(compareDF,
                                 msg = "All specified symbol arguments must be of length 4, including symbolSize, symbolShape, symbolColor, and symbolFill.")
     }
 
-    names(symbolShape) = c("Common", "xUnique", "yUnique", "NoChange")
-    names(symbolSize)  = c("Common", "xUnique", "yUnique", "NoChange")
-    names(symbolColor) = c("Common", "xUnique", "yUnique", "NoChange")
-    names(symbolFill)  = c("Common", "xUnique", "yUnique", "NoChange")
-
-    ssc = data.frame(group = c("Common", "X Unique", "Y Unique", "Not Significant"),
-                     symbolShape = symbolShape,
-                     symbolSize = symbolSize,
-                     symbolColor = symbolColor,
-                     symbolFill = symbolFill,
-                     stringsAsFactors = FALSE)
-
-    # Used to set uniform square scale
-    scalemax = compareDF[,1:2] %>% as.matrix %>% abs %>% max %>% multiply_by(1.05)
+    sigMeasurePlot <- FALSE
+    levels <- c("Common", "X Unique", "Y Unique", "Not Significant")
 
     # Capture the labels from the colname
-    xlabel = colnames(compareDF)[1]
-    ylabel = colnames(compareDF)[2]
+    if (is.null(xlab)) { # Use colname unless supplied as argument
+        xlab <- colnames(compareDF)[1]
+    }
+
+    if (is.null(ylab)) {
+        ylab <- colnames(compareDF)[2]
+    }
     # Now make the column names suitable for use with aes_string
-    x = make.names(colnames(compareDF)[1])
-    y = make.names(colnames(compareDF)[2])
-    colnames(compareDF)[1:2] = make.names(colnames(compareDF)[1:2])
+    x <- make.names(colnames(compareDF)[1])
+    y <- make.names(colnames(compareDF)[2])
+    colnames(compareDF)[1:2] <- make.names(colnames(compareDF)[1:2])
 
-    # SIMPLE PLOT: plot all data (no significance measures supplied)
-    if (is.null(compareDF[["xp"]]) | is.null(compareDF[["yp"]])) {
-        CompPlot = ggplot(compareDF, aes_string(x = x, y = y)) +
-            geom_point(shape = 1,
-                       size = symbolSize[["xUnique"]],
-                       color = symbolFill[["xUnique"]],
-                       fill = symbolFill[["xUnique"]],
-                       alpha = alpha) +
-            coord_equal(xlim = c(-scalemax, scalemax), ylim = c(-scalemax, scalemax))
-        if (dens2D == TRUE) {
-            CompPlot = CompPlot + geom_density2d(color = symbolFill[["yUnique"]])
-        }
-    } else
-        # DELUXE PLOT: plot groups in different colors/shapes
-        if (!is.null(compareDF[["xp"]]) & !is.null(compareDF[["yp"]])) {
-            # Plot the subsets
-            xindx = compareDF[["xp"]] <= pThreshold
-            yindx = compareDF[["yp"]] <= pThreshold
+    if (!is.null(compareDF[["xp"]]) & !is.null(compareDF[["yp"]])) {
+        sigMeasurePlot <- TRUE
+        #create group factor column in compareDF
+        compareDF$group                                                                        <- "Not Significant"
+        compareDF$group[compareDF[["xp"]] <= pThreshold]                                       <- "X Unique"
+        compareDF$group[compareDF[["yp"]] <= pThreshold]                                       <- "Y Unique"
+        compareDF$group[(compareDF[["xp"]] <= pThreshold) & (compareDF[["yp"]] <= pThreshold)] <- "Common"
 
-            # Boolean indexes to parse groups
-            bothindx = xindx & yindx
-            neitherindx = !xindx & !yindx
-            xindx = xindx & !bothindx # Unique to X
-            yindx = yindx & !bothindx # Unique to y
+        compareDF$group <- compareDF$group %>%
+            factor(levels = levels)
 
-            # Create group factor column in compareDF
-            compareDF$group = NA
-            compareDF$group[bothindx] = "Common"
-            compareDF$group[xindx] = "X Unique"
-            compareDF$group[yindx] = "Y Unique"
-            compareDF$group[neitherindx] = "Not Significant"
-            compareDF <- compareDF %>%
-                dplyr::left_join(ssc)
-            compareDF$group <- compareDF$group %>%
-                factor(levels = c("Common", "X Unique", "Y Unique", "Not Significant"))
+        # Set an order field to control order of plotting
+        # Plot order is 1) Not Significant plotted first, 2) randomly plot X and Y Unique
+        # then plot Common last
+        compareDF$order <- sample.int(nrow(compareDF)) + # Add random order (seeded for reproducibility)
+            nrow(compareDF) * (compareDF$group == "Common") +  # Assign common a high value to sort last
+            -1*nrow(compareDF) * (compareDF$group == "Not Significant") # Assign NotSig group neg values to sort first
+        compareDF <- compareDF[order(compareDF$order), ]
+    }
 
-            # Set an order field to control order of plotting
-            # Plot order is 1) Not Significant plotted first, 2) randomly plot X and Y Unique
-            # then plot Common last
-            compareDF$order = sample.int(nrow(compareDF)) + # Add random order (seeded for reproducibility)
-                nrow(compareDF) * (compareDF$group == "Common") +  # Assign common a high value to sort last
-                -nrow(compareDF) * (compareDF$group == "Not Significant") # Assign NotSig group neg values to sort first
+    # plotType
+    if (plotType == "ggplot") {
+        ssc <- data.frame(group = factor(x = levels, levels = levels),
+                          symbolShape = symbolShape,
+                          symbolSize = symbolSize,
+                          symbolColor = symbolColor,
+                          symbolFill = symbolFill,
+                          stringsAsFactors = FALSE)
 
+        compareDF <- compareDF %>%
+            dplyr::left_join(ssc)
+
+        # Used to set uniform square scale
+        scalemax <- compareDF[,1:2] %>% as.matrix %>% abs %>% max %>% multiply_by(1.05)
+
+        if (sigMeasurePlot) {
             CompPlot <- ggplot(compareDF, aes_string(x = x, y = y)) +
                 aes(shape = group, size = group,
                     color = group, fill = group,
@@ -226,72 +216,162 @@ comparePlot <- function(compareDF,
                 coord_equal(xlim = c(-scalemax, scalemax), ylim = c(-scalemax, scalemax)) +
                 # Box around the legend
                 theme(legend.background = element_rect(fill = "gray95", size = .5, linetype = "dotted"))
+        } else {
+            CompPlot <- ggplot(compareDF, aes_string(x = x, y = y)) +
+                geom_point(shape = 1,
+                           size = symbolSize[["xUnique"]],
+                           color = symbolFill[["xUnique"]],
+                           fill = symbolFill[["xUnique"]],
+                           alpha = alpha) +
+                coord_equal(xlim = c(-scalemax, scalemax), ylim = c(-scalemax, scalemax))
+            if (dens2D == TRUE) {
+                CompPlot <- CompPlot + geom_density2d(color = symbolFill[["yUnique"]])
+            }
         }
 
-    # Optional Decorations
-    if (!is.null(rugColor)) {
-        CompPlot <- CompPlot + geom_rug(data = compareDF,
-                                        inherit.aes = FALSE,
-                                        color = rugColor,
-                                        alpha = rugAlpha,
-                                        show.legend = FALSE,
-                                        aes_string(x = x, y = y))
-    }
+        CompPlot <- CompPlot + xlab(xlab)+ ylab(ylab)
+        if (!is.null(title)) {
+            CompPlot <- CompPlot + ggtitle(title)
+        }
 
-    if (!is.null(crosshair)) {
-        CompPlot <- CompPlot +
-            geom_hline(yintercept = 0,
-                       color = crosshair,
-                       size = refLineThickness,
-                       alpha = 0.5) +
-            geom_vline(xintercept = 0,
-                       color = crosshair,
-                       size = refLineThickness,
-                       alpha = 0.5)
-    }
+        # Optional Decorations
+        if (!is.null(rugColor)) {
+            CompPlot <- CompPlot + geom_rug(data = compareDF,
+                                            inherit.aes = FALSE,
+                                            color = rugColor,
+                                            alpha = rugAlpha,
+                                            show.legend = FALSE,
+                                            aes_string(x = x, y = y))
+        }
 
-    if (!is.null(referenceLine)) {
-        CompPlot <- CompPlot +
-            geom_abline(slope = 1,
-                        intercept = 0,
-                        color = referenceLine,
-                        size = refLineThickness,
-                        alpha = 0.5)
-    }
+        if (!is.null(crosshair)) {
+            CompPlot <- CompPlot +
+                geom_hline(yintercept = 0,
+                           color = crosshair,
+                           size = refLineThickness,
+                           alpha = 0.5) +
+                geom_vline(xintercept = 0,
+                           color = crosshair,
+                           size = refLineThickness,
+                           alpha = 0.5)
+        }
 
-    # Add Labels
-    if (is.null(xlab)) { # Use colname unless supplied as argument
-        CompPlot <- CompPlot + xlab(xlabel)
+        if (!is.null(referenceLine)) {
+            CompPlot <- CompPlot +
+                geom_abline(slope = 1,
+                            intercept = 0,
+                            color = referenceLine,
+                            size = refLineThickness,
+                            alpha = 0.5)
+        }
+
+        # Set the font size before placing the legend
+        if (tolower(themeStyle) == "bw") {
+            CompPlot <- CompPlot + theme_bw() + baseTheme(baseFontSize)
+        } else {
+            CompPlot <- CompPlot + theme_grey() + baseTheme(baseFontSize)
+        }
+
+        CompPlot <- setLegendPosition(CompPlot, legendPosition, themeStyle)
+
+        if (!missing(footnote)) {
+            CompPlot <- addFootnote(CompPlot,
+                                    footnoteText = footnote,
+                                    footnoteSize = footnoteSize,
+                                    footnoteColor = "black",
+                                    footnoteJust = footnoteJust,
+                                    yoffset = 0.05)
+        }
     } else {
-        CompPlot <- CompPlot + xlab(xlab)
-    }
-    if (is.null(ylab)) {
-        CompPlot <- CompPlot + ylab(ylabel)
-    } else {
-        CompPlot <- CompPlot + ylab(ylab)
-    }
-    if (!is.null(title)) {
-        CompPlot <- CompPlot + ggtitle(title)
-    }
+        # adding alpha to colors
+        symbolFill[1] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[1], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        symbolFill[2] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[2], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        symbolFill[3] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[3], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        symbolFill[4] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[4], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
 
-    # Set the font size before placing the legend
-    if (tolower(themeStyle) == "bw") {
-        CompPlot <- CompPlot + theme_bw() + baseTheme(baseFontSize)
-    } else {
-        CompPlot <- CompPlot + theme_grey() + baseTheme(baseFontSize)
+        yAxisRugShow <- xAxisRugShow <- FALSE
+        # Optional Decorations
+        if (!is.null(rugColor)) {
+            yAxisRugShow <- xAxisRugShow <- TRUE
+        }
+
+        if (!is.null(crosshair)) {
+            crosshair <- paste(c("rgba(", paste(c(paste(col2rgb(crosshair, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+            decorations <- list(line = list(list(color = crosshair, width = 2, x = 0),
+                                            list(color = crosshair, width = 2, y = 0)))
+        }
+
+        if (!is.null(referenceLine)) {
+            referenceLine <- paste(c("rgba(", paste(c(paste(col2rgb(referenceLine, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+            decorations <- list(line = append(decorations$line, list(list(color = referenceLine,
+                                                                          width = refLineThickness,
+                                                                          x     = -10,
+                                                                          x2    = 10,
+                                                                          y     = -10,
+                                                                          y2    = 10)
+            )))
+        }
+
+        if (missing(footnote)) {
+            footnote <- NULL
+        }
+
+        if (sigMeasurePlot) {
+            cx.data <- data.frame(a = round(compareDF[, 1], digits = 2), b = round(compareDF[, 2], digits = 2))
+            colnames(cx.data) <- c(xlabel, ylabel)
+            rownames(cx.data) <- rownames(compareDF)
+            var.annot <- data.frame(Group = compareDF$group)
+            colnames(var.annot) <- c("Group")
+            rownames(var.annot) <- rownames(cx.data)
+
+            CompPlot <-canvasXpress(data                    = cx.data,
+                                    varAnnot                = var.annot,
+                                    decorations             = decorations,
+                                    graphType               = "Scatter2D",
+                                    colorBy                 = "Group",
+                                    colors                  = symbolFill[c(1,4,2,3)],
+                                    legendPosition          = legendPosition,
+                                    scatterAxesEqual        = TRUE,
+                                    showDecorations         = TRUE,
+                                    sizeBy                  = "Group",
+                                    sizes                   = as.numeric(symbolSize[c(1,4,2,3)]),
+                                    sizeByShowLegend        = FALSE,
+                                    title                   = title,
+                                    subtitleScaleFontFactor = 0.5,
+                                    showAnimation           = FALSE,
+                                    width                   = "100%",
+                                    yAxisRugShow            = yAxisRugShow,
+                                    xAxisRugShow            = xAxisRugShow,
+                                    xAxis                   = list(xlab),
+                                    yAxis                   = list(ylab),
+                                    citation                = footnote,
+                                    citationFontSize        = footnoteSize,
+                                    citationColor           = "black")
+        } else {
+            CompPlot <- canvasXpress(data                    = compareDF[,c(x,y)],
+                                     decorations             = decorations,
+                                     graphType               = "Scatter2D",
+                                     colorBy                 = "Group",
+                                     colors                  = symbolFill[2],
+                                     legendPosition          = legendPosition,
+                                     scatterAxesEqual        = TRUE,
+                                     showDecorations         = TRUE,
+                                     sizeBy                  = "Group",
+                                     sizes                   = as.numeric(symbolSize[2]),
+                                     sizeByShowLegend        = FALSE,
+                                     title                   = title,
+                                     subtitleScaleFontFactor = 0.5,
+                                     showAnimation           = FALSE,
+                                     width                   = "100%",
+                                     yAxisRugShow            = yAxisRugShow,
+                                     xAxisRugShow            = xAxisRugShow,
+                                     xAxis                   = list(xlab),
+                                     yAxis                   = list(ylab),
+                                     citation                = footnote,
+                                     citationFontSize        = footnoteSize,
+                                     citationColor           = "black")
+        }
     }
-
-    CompPlot <- setLegendPosition(CompPlot, legendPosition, themeStyle)
-
-    if (!missing(footnote)) {
-        CompPlot <- addFootnote(CompPlot,
-                                footnoteText = footnote,
-                                footnoteSize = footnoteSize,
-                                footnoteColor = "black",
-                                footnoteJust = footnoteJust,
-                                yoffset = 0.05)
-    }
-
     return(CompPlot)
 }
 

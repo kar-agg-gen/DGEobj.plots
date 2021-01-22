@@ -13,7 +13,7 @@
 #' where n equals the base font size to adjust the text size (12 works well for knitr, 18 or 24 works well
 #' for PPT), e.g. MyPlot + theme_grey(18).  However, theme_grey() and theme_bw() have the
 #' side effect of resetting the legend position, and should not be used if the custom legend locations
-#' need to be preserved. Instead, utilize the baseFontSize
+#' need to be preserved.
 #' argument in this function to set font sizes and preserve a custom legend location.
 #'
 #' \strong{Data Structure for the input dataframe:}
@@ -52,23 +52,16 @@
 #' @param symbolFill Set the fill color for the symbols. Note only symbols 21-25 are fillable. This will
 #'        have no effect on other symbols. Default = c("darkgoldenrod1", "deepskyblue4", "red3", "grey25")
 #' @param alpha Controls the transparency of the plotted points (0-1; Default = 0.5)
-#' @param rugColor Specify color for rug density plot along X and Y axes. Set to NULL
-#'        to disable rug layer. (Default = NULL)
-#' @param rugAlpha Sets the transparency for the rug layer. alpha <1.0 takes
-#'        a long time to draw, so for a final plot try 0.1 or 0.2 for alpha for more informative rug.
 #' @param crosshair Color for the crosshair; (Default = "grey50", NULL disables)
 #'        See \url{http://research.stowers-institute.org/efg/R/Color/Chart}
 #' @param referenceLine Color for a slope=1, intercept=0 reference line
 #'        (Default = "darkgoldenrod1"; NULL disables)
 #' @param refLineThickness Set thickness for crosshair and referenceLine (Default = 1)
-#' @param dens2D Overlay a density2D layer (Default = TRUE) Note: only applies
-#'        to simple compare plot without p-value coloring.
 #' @param legendPosition One of "top", "bottom", "left", "right", "ne", "se", "nw", "sw", NULL.
 #'        top/bottom/left/right place the legend outside the figure.  ne/se/nw/sw place the figure
 #'        inside the figure. NULL disables the legend. Default = "right"
-#' @param baseFontSize The smallest size font in the figure in points. Default = 12
-#' @param themeStyle "bw" or "grey" which corresponds to theme_bw or theme_grey respectively.
-#'        Default = "bw"
+#' @param theme For plotType = "ggplot" available options are "bw" or "grey" which corresponds to theme_bw or theme_grey respectively. whereas for plotType = "canvasxpress" use Cx themes.
+#'        Default = "bw" (for ggplot) / "none" (for canvasxpress)
 #' @param footnote Optional string placed right justified at bottom of plot.
 #' @param footnoteSize Applies to footnote. (Default = 3)
 #' @param footnoteColor Applies to footnote. (Default = "black")
@@ -117,15 +110,11 @@ comparePlot <- function(compareDF,
                         symbolColor = c("black", "grey0", "grey1", "grey25"),
                         symbolFill = c("darkgoldenrod1", "deepskyblue4", "red3", "grey25"),
                         alpha = 0.5,
-                        rugColor = NULL,
-                        rugAlpha = 1.0,
                         crosshair = "grey50",
                         referenceLine = "darkgoldenrod1",
                         refLineThickness = 1,
-                        dens2D = TRUE,
                         legendPosition = "right",
-                        baseFontSize = 12,
-                        themeStyle = "bw",
+                        theme,
                         footnote,
                         footnoteSize = 3,
                         footnoteColor = "black",
@@ -144,6 +133,14 @@ comparePlot <- function(compareDF,
                                 !length(symbolColor) == 4,
                                 !length(symbolFill) == 4,
                                 msg = "All specified symbol arguments must be of length 4, including symbolSize, symbolShape, symbolColor, and symbolFill.")
+    }
+
+    if (missing(theme)) {
+        if (plotType == "ggplot") {
+            theme <- "bw"}
+        else {
+            theme <- "none"
+        }
     }
 
     sigMeasurePlot <- FALSE
@@ -224,24 +221,11 @@ comparePlot <- function(compareDF,
                            fill = symbolFill[["xUnique"]],
                            alpha = alpha) +
                 coord_equal(xlim = c(-scalemax, scalemax), ylim = c(-scalemax, scalemax))
-            if (dens2D == TRUE) {
-                CompPlot <- CompPlot + geom_density2d(color = symbolFill[["yUnique"]])
-            }
         }
 
         CompPlot <- CompPlot + xlab(xlab)+ ylab(ylab)
         if (!is.null(title)) {
             CompPlot <- CompPlot + ggtitle(title)
-        }
-
-        # Optional Decorations
-        if (!is.null(rugColor)) {
-            CompPlot <- CompPlot + geom_rug(data = compareDF,
-                                            inherit.aes = FALSE,
-                                            color = rugColor,
-                                            alpha = rugAlpha,
-                                            show.legend = FALSE,
-                                            aes_string(x = x, y = y))
         }
 
         if (!is.null(crosshair)) {
@@ -266,13 +250,13 @@ comparePlot <- function(compareDF,
         }
 
         # Set the font size before placing the legend
-        if (tolower(themeStyle) == "bw") {
-            CompPlot <- CompPlot + theme_bw() + baseTheme(baseFontSize)
+        if (tolower(theme) == "bw") {
+            CompPlot <- CompPlot + theme_bw()
         } else {
-            CompPlot <- CompPlot + theme_grey() + baseTheme(baseFontSize)
+            CompPlot <- CompPlot + theme_grey()
         }
 
-        CompPlot <- setLegendPosition(CompPlot, legendPosition, themeStyle)
+        CompPlot <- setLegendPosition(CompPlot, legendPosition, theme)
 
         if (!missing(footnote)) {
             CompPlot <- addFootnote(CompPlot,
@@ -288,12 +272,6 @@ comparePlot <- function(compareDF,
         symbolFill[2] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[2], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
         symbolFill[3] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[3], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
         symbolFill[4] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[4], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-
-        yAxisRugShow <- xAxisRugShow <- FALSE
-        # Optional Decorations
-        if (!is.null(rugColor)) {
-            yAxisRugShow <- xAxisRugShow <- TRUE
-        }
 
         if (!is.null(crosshair)) {
             crosshair <- paste(c("rgba(", paste(c(paste(col2rgb(crosshair, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
@@ -340,10 +318,9 @@ comparePlot <- function(compareDF,
                                     subtitleScaleFontFactor = 0.5,
                                     showAnimation           = FALSE,
                                     width                   = "100%",
-                                    yAxisRugShow            = yAxisRugShow,
-                                    xAxisRugShow            = xAxisRugShow,
                                     xAxis                   = list(xlab),
                                     yAxis                   = list(ylab),
+                                    theme                   = theme,
                                     citation                = footnote,
                                     citationFontSize        = footnoteSize,
                                     citationColor           = "black")
@@ -363,10 +340,9 @@ comparePlot <- function(compareDF,
                                      subtitleScaleFontFactor = 0.5,
                                      showAnimation           = FALSE,
                                      width                   = "100%",
-                                     yAxisRugShow            = yAxisRugShow,
-                                     xAxisRugShow            = xAxisRugShow,
                                      xAxis                   = list(xlab),
                                      yAxis                   = list(ylab),
+                                     theme                   = theme,
                                      citation                = footnote,
                                      citationFontSize        = footnoteSize,
                                      citationColor           = "black")

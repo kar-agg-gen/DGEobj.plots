@@ -39,7 +39,7 @@
 #'
 #' @param compareDF A dataframe with the first two columns representing the x and y variables.
 #'          Optionally add xp and yp columns to hold p-values or FDR values.
-#' @param plotType Plot type must be canvasxpress or ggplot (Default to ggplot).
+#' @param plotType Plot type must be canvasxpress or ggplot (Default to canvasXpress).
 #' @param xlab X-axis label (Default to first column name)
 #' @param ylab Y-axis label (Default to second column name)
 #' @param title Plot title (Optional)
@@ -60,8 +60,8 @@
 #' @param legendPosition One of "top", "bottom", "left", "right", "ne", "se", "nw", "sw", NULL.
 #'        top/bottom/left/right place the legend outside the figure.  ne/se/nw/sw place the figure
 #'        inside the figure. NULL disables the legend. Default = "right"
-#' @param theme For plotType = "ggplot" available options are "bw" or "grey" which corresponds to theme_bw or theme_grey respectively. whereas for plotType = "canvasxpress" use Cx themes.
-#'        Default = "bw" (for ggplot) / "none" (for canvasxpress)
+#' @param theme For plotType = "ggplot" available options are "bw" or "grey" which corresponds to theme_bw or theme_grey respectively. whereas for plotType = "canvasXpress" use Cx themes.
+#'        Default = "bw" (for ggplot) / "none" (for canvasXpress)
 #' @param footnote Optional string placed right justified at bottom of plot.
 #' @param footnoteSize Applies to footnote. (Default = 3)
 #' @param footnoteColor Applies to footnote. (Default = "black")
@@ -125,8 +125,8 @@ comparePlot <- function(compareDF,
 
     assertthat::assert_that(sum(apply(compareDF, 2, FUN = is.numeric)) >= 2,
                             msg = "Need at least two numeric columns in compareDF.")
-    assertthat::assert_that(plotType %in% c("ggplot", "canvasxpress"),
-                            msg = "Plot type must be either ggplot or canvasxpress.")
+    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
+                            msg = "Plot type must be either ggplot or canvasXpress.")
     if (!missing(symbolSize) || !missing(symbolShape) || !missing(symbolColor) || !missing(symbolFill)) {
         assertthat::assert_that(!length(symbolSize) == 4,
                                 !length(symbolShape) == 4,
@@ -162,10 +162,10 @@ comparePlot <- function(compareDF,
     if (!is.null(compareDF[["xp"]]) & !is.null(compareDF[["yp"]])) {
         sigMeasurePlot <- TRUE
         #create group factor column in compareDF
-        compareDF$group                                                                        <- "Not Significant"
-        compareDF$group[compareDF[["xp"]] <= pThreshold]                                       <- "X Unique"
-        compareDF$group[compareDF[["yp"]] <= pThreshold]                                       <- "Y Unique"
-        compareDF$group[(compareDF[["xp"]] <= pThreshold) & (compareDF[["yp"]] <= pThreshold)] <- "Common"
+        compareDF$group <- "Not Significant"
+        compareDF$group[compareDF[["xp"]] <= pThreshold] <- "X Unique"
+        compareDF$group[compareDF[["yp"]] <= pThreshold] <- "Y Unique"
+        compareDF$group[(compareDF[["xp"]] <= pThreshold) && (compareDF[["yp"]] <= pThreshold)] <- "Common"
 
         compareDF$group <- compareDF$group %>%
             factor(levels = levels)
@@ -180,7 +180,84 @@ comparePlot <- function(compareDF,
     }
 
     # plotType
-    if (plotType == "ggplot") {
+    if (plotType == "canvasXpress") {
+        # adding alpha to colors
+        symbolFill[1] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[1], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        symbolFill[2] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[2], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        symbolFill[3] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[3], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        symbolFill[4] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[4], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+
+        if (!is.null(crosshair)) {
+            crosshair <- paste(c("rgba(", paste(c(paste(col2rgb(crosshair, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+            decorations <- list(line = list(list(color = crosshair, width = 2, x = 0),
+                                            list(color = crosshair, width = 2, y = 0)))
+        }
+
+        if (!is.null(referenceLine)) {
+            referenceLine <- paste(c("rgba(", paste(c(paste(col2rgb(referenceLine, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+            decorations <- list(line = append(decorations$line, list(list(color = referenceLine,
+                                                                          width = refLineThickness,
+                                                                          x     = -10,
+                                                                          x2    = 10,
+                                                                          y     = -10,
+                                                                          y2    = 10)
+            )))
+        }
+
+        if (missing(footnote)) {
+            footnote <- NULL
+        }
+
+        if (sigMeasurePlot) {
+            cx.data <- data.frame(a = round(compareDF[, 1], digits = 2), b = round(compareDF[, 2], digits = 2))
+            colnames(cx.data) <- c(xlabel, ylabel)
+            rownames(cx.data) <- rownames(compareDF)
+            var.annot <- data.frame(Group = compareDF$group)
+            colnames(var.annot) <- c("Group")
+            rownames(var.annot) <- rownames(cx.data)
+
+            CompPlot <- canvasXpress(data                    = cx.data,
+                                     varAnnot                = var.annot,
+                                     decorations             = decorations,
+                                     graphType               = "Scatter2D",
+                                     colorBy                 = "Group",
+                                     colors                  = symbolFill[c(1,4,2,3)],
+                                     legendPosition          = legendPosition,
+                                     scatterAxesEqual        = TRUE,
+                                     showDecorations         = TRUE,
+                                     sizeBy                  = "Group",
+                                     sizes                   = as.numeric(symbolSize[c(1,4,2,3)]),
+                                     sizeByShowLegend        = FALSE,
+                                     title                   = title,
+                                     subtitleScaleFontFactor = 0.5,
+                                     xAxis                   = list(xlab),
+                                     yAxis                   = list(ylab),
+                                     theme                   = theme,
+                                     citation                = footnote,
+                                     citationFontSize        = footnoteSize,
+                                     citationColor           = "black")
+        } else {
+            CompPlot <- canvasXpress(data                    = compareDF[,c(x,y)],
+                                     decorations             = decorations,
+                                     graphType               = "Scatter2D",
+                                     colorBy                 = "Group",
+                                     colors                  = symbolFill[2],
+                                     legendPosition          = legendPosition,
+                                     scatterAxesEqual        = TRUE,
+                                     showDecorations         = TRUE,
+                                     sizeBy                  = "Group",
+                                     sizes                   = as.numeric(symbolSize[2]),
+                                     sizeByShowLegend        = FALSE,
+                                     title                   = title,
+                                     subtitleScaleFontFactor = 0.5,
+                                     xAxis                   = list(xlab),
+                                     yAxis                   = list(ylab),
+                                     theme                   = theme,
+                                     citation                = footnote,
+                                     citationFontSize        = footnoteSize,
+                                     citationColor           = "black")
+        }
+    } else {
         ssc <- data.frame(group = factor(x = levels, levels = levels),
                           symbolShape = symbolShape,
                           symbolSize = symbolSize,
@@ -265,87 +342,6 @@ comparePlot <- function(compareDF,
                                     footnoteColor = "black",
                                     footnoteJust = footnoteJust,
                                     yoffset = 0.05)
-        }
-    } else {
-        # adding alpha to colors
-        symbolFill[1] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[1], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-        symbolFill[2] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[2], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-        symbolFill[3] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[3], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-        symbolFill[4] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[4], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-
-        if (!is.null(crosshair)) {
-            crosshair <- paste(c("rgba(", paste(c(paste(col2rgb(crosshair, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-            decorations <- list(line = list(list(color = crosshair, width = 2, x = 0),
-                                            list(color = crosshair, width = 2, y = 0)))
-        }
-
-        if (!is.null(referenceLine)) {
-            referenceLine <- paste(c("rgba(", paste(c(paste(col2rgb(referenceLine, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-            decorations <- list(line = append(decorations$line, list(list(color = referenceLine,
-                                                                          width = refLineThickness,
-                                                                          x     = -10,
-                                                                          x2    = 10,
-                                                                          y     = -10,
-                                                                          y2    = 10)
-            )))
-        }
-
-        if (missing(footnote)) {
-            footnote <- NULL
-        }
-
-        if (sigMeasurePlot) {
-            cx.data <- data.frame(a = round(compareDF[, 1], digits = 2), b = round(compareDF[, 2], digits = 2))
-            colnames(cx.data) <- c(xlabel, ylabel)
-            rownames(cx.data) <- rownames(compareDF)
-            var.annot <- data.frame(Group = compareDF$group)
-            colnames(var.annot) <- c("Group")
-            rownames(var.annot) <- rownames(cx.data)
-
-            CompPlot <-canvasXpress(data                    = cx.data,
-                                    varAnnot                = var.annot,
-                                    decorations             = decorations,
-                                    graphType               = "Scatter2D",
-                                    colorBy                 = "Group",
-                                    colors                  = symbolFill[c(1,4,2,3)],
-                                    legendPosition          = legendPosition,
-                                    scatterAxesEqual        = TRUE,
-                                    showDecorations         = TRUE,
-                                    sizeBy                  = "Group",
-                                    sizes                   = as.numeric(symbolSize[c(1,4,2,3)]),
-                                    sizeByShowLegend        = FALSE,
-                                    title                   = title,
-                                    subtitleScaleFontFactor = 0.5,
-                                    showAnimation           = FALSE,
-                                    width                   = "100%",
-                                    xAxis                   = list(xlab),
-                                    yAxis                   = list(ylab),
-                                    theme                   = theme,
-                                    citation                = footnote,
-                                    citationFontSize        = footnoteSize,
-                                    citationColor           = "black")
-        } else {
-            CompPlot <- canvasXpress(data                    = compareDF[,c(x,y)],
-                                     decorations             = decorations,
-                                     graphType               = "Scatter2D",
-                                     colorBy                 = "Group",
-                                     colors                  = symbolFill[2],
-                                     legendPosition          = legendPosition,
-                                     scatterAxesEqual        = TRUE,
-                                     showDecorations         = TRUE,
-                                     sizeBy                  = "Group",
-                                     sizes                   = as.numeric(symbolSize[2]),
-                                     sizeByShowLegend        = FALSE,
-                                     title                   = title,
-                                     subtitleScaleFontFactor = 0.5,
-                                     showAnimation           = FALSE,
-                                     width                   = "100%",
-                                     xAxis                   = list(xlab),
-                                     yAxis                   = list(ylab),
-                                     theme                   = theme,
-                                     citation                = footnote,
-                                     citationFontSize        = footnoteSize,
-                                     citationColor           = "black")
         }
     }
     return(CompPlot)

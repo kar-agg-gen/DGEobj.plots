@@ -3,7 +3,6 @@
 export(MDS_var_explained)
 export(QCplots)
 export(cdfPlot)
-export(checkSex)
 export(comparePlot)
 export(comparePrep)
 export(ggplotMDS)

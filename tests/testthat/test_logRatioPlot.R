@@ -10,7 +10,7 @@ test_that("logRatioPlot.R: logRatioPlot()", {
 
     # Add gene symbols from geneData and select small set of genes for plotting
     ens2genesym <- data.frame("EnsgID" = row.names(t_obj1$geneData), t_obj1$geneData, row.names = NULL) %>%
-        select(EnsgID, GeneSymbol = GeneName)
+        select(EnsgID, GeneSymbol = rgd_symbol)
     tidyDat <- left_join(tidyDat, ens2genesym) %>% head(10)
 
     # Simple barplot

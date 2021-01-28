@@ -8,14 +8,6 @@
 #'
 #' Other options add an identity line (slope = 1, intercept = 0) and/or a crosshair at (0, 0).
 #'
-#' comparePlot has also been implemented with a scalable theme that makes it easy to scale font sizes larger
-#' or smaller for PPT or knitr output.  Add either theme_grey(n) or theme_bw(n),
-#' where n equals the base font size to adjust the text size (12 works well for knitr, 18 or 24 works well
-#' for PPT), e.g. MyPlot + theme_grey(18).  However, theme_grey() and theme_bw() have the
-#' side effect of resetting the legend position, and should not be used if the custom legend locations
-#' need to be preserved.
-#' argument in this function to set font sizes and preserve a custom legend location.
-#'
 #' \strong{Data Structure for the input dataframe:}
 #'
 #' The x and y values should be in the first two columns. By default, their
@@ -60,8 +52,6 @@
 #' @param legendPosition One of "top", "bottom", "left", "right", "ne", "se", "nw", "sw", NULL.
 #'        top/bottom/left/right place the legend outside the figure.  ne/se/nw/sw place the figure
 #'        inside the figure. NULL disables the legend. Default = "right"
-#' @param theme For plotType = "ggplot" available options are "bw" or "grey" which corresponds to theme_bw or theme_grey respectively. whereas for plotType = "canvasXpress" use Cx themes.
-#'        Default = "bw" (for ggplot) / "none" (for canvasXpress)
 #' @param footnote Optional string placed right justified at bottom of plot.
 #' @param footnoteSize Applies to footnote. (Default = 3)
 #' @param footnoteColor Applies to footnote. (Default = "black")
@@ -101,11 +91,11 @@
 #'
 #' @export
 comparePlot <- function(compareDF,
-                        plotType = "ggplot",
+                        plotType = "canvasXpress",
                         pThreshold = 0.01,
                         xlab = NULL, ylab = NULL,
                         title = NULL,
-                        symbolSize = c(4, 4, 4, 2),
+                        symbolSize = c(10, 10, 10, 4),
                         symbolShape = c(21, 21, 21, 20),
                         symbolColor = c("black", "grey0", "grey1", "grey25"),
                         symbolFill = c("darkgoldenrod1", "deepskyblue4", "red3", "grey25"),
@@ -114,7 +104,6 @@ comparePlot <- function(compareDF,
                         referenceLine = "darkgoldenrod1",
                         refLineThickness = 1,
                         legendPosition = "right",
-                        theme,
                         footnote,
                         footnoteSize = 3,
                         footnoteColor = "black",
@@ -133,14 +122,6 @@ comparePlot <- function(compareDF,
                                 !length(symbolColor) == 4,
                                 !length(symbolFill) == 4,
                                 msg = "All specified symbol arguments must be of length 4, including symbolSize, symbolShape, symbolColor, and symbolFill.")
-    }
-
-    if (missing(theme)) {
-        if (plotType == "ggplot") {
-            theme <- "bw"}
-        else {
-            theme <- "none"
-        }
     }
 
     sigMeasurePlot <- FALSE
@@ -165,7 +146,7 @@ comparePlot <- function(compareDF,
         compareDF$group <- "Not Significant"
         compareDF$group[compareDF[["xp"]] <= pThreshold] <- "X Unique"
         compareDF$group[compareDF[["yp"]] <= pThreshold] <- "Y Unique"
-        compareDF$group[(compareDF[["xp"]] <= pThreshold) && (compareDF[["yp"]] <= pThreshold)] <- "Common"
+        compareDF$group[(compareDF[["xp"]] <= pThreshold) & (compareDF[["yp"]] <= pThreshold)] <- "Common"
 
         compareDF$group <- compareDF$group %>%
             factor(levels = levels)
@@ -210,7 +191,7 @@ comparePlot <- function(compareDF,
 
         if (sigMeasurePlot) {
             cx.data <- data.frame(a = round(compareDF[, 1], digits = 2), b = round(compareDF[, 2], digits = 2))
-            colnames(cx.data) <- c(xlabel, ylabel)
+            colnames(cx.data) <- c(xlab, ylab)
             rownames(cx.data) <- rownames(compareDF)
             var.annot <- data.frame(Group = compareDF$group)
             colnames(var.annot) <- c("Group")
@@ -232,7 +213,6 @@ comparePlot <- function(compareDF,
                                      subtitleScaleFontFactor = 0.5,
                                      xAxis                   = list(xlab),
                                      yAxis                   = list(ylab),
-                                     theme                   = theme,
                                      citation                = footnote,
                                      citationFontSize        = footnoteSize,
                                      citationColor           = "black")
@@ -252,7 +232,6 @@ comparePlot <- function(compareDF,
                                      subtitleScaleFontFactor = 0.5,
                                      xAxis                   = list(xlab),
                                      yAxis                   = list(ylab),
-                                     theme                   = theme,
                                      citation                = footnote,
                                      citationFontSize        = footnoteSize,
                                      citationColor           = "black")
@@ -265,13 +244,13 @@ comparePlot <- function(compareDF,
                           symbolFill = symbolFill,
                           stringsAsFactors = FALSE)
 
-        compareDF <- compareDF %>%
-            dplyr::left_join(ssc)
-
         # Used to set uniform square scale
         scalemax <- compareDF[,1:2] %>% as.matrix %>% abs %>% max %>% multiply_by(1.05)
 
         if (sigMeasurePlot) {
+            compareDF <- compareDF %>%
+                dplyr::left_join(ssc)
+
             CompPlot <- ggplot(compareDF, aes_string(x = x, y = y)) +
                 aes(shape = group, size = group,
                     color = group, fill = group,
@@ -293,14 +272,14 @@ comparePlot <- function(compareDF,
         } else {
             CompPlot <- ggplot(compareDF, aes_string(x = x, y = y)) +
                 geom_point(shape = 1,
-                           size = symbolSize[["xUnique"]],
-                           color = symbolFill[["xUnique"]],
-                           fill = symbolFill[["xUnique"]],
+                           size = ssc$symbolSize[ssc$group == "X Unique"],
+                           color = ssc$symbolFill[ssc$group == "X Unique"],
+                           fill = ssc$symbolFill[ssc$group == "X Unique"],
                            alpha = alpha) +
                 coord_equal(xlim = c(-scalemax, scalemax), ylim = c(-scalemax, scalemax))
         }
 
-        CompPlot <- CompPlot + xlab(xlab)+ ylab(ylab)
+        CompPlot <- CompPlot + xlab(xlab) + ylab(ylab)
         if (!is.null(title)) {
             CompPlot <- CompPlot + ggtitle(title)
         }
@@ -326,14 +305,8 @@ comparePlot <- function(compareDF,
                             alpha = 0.5)
         }
 
-        # Set the font size before placing the legend
-        if (tolower(theme) == "bw") {
-            CompPlot <- CompPlot + theme_bw()
-        } else {
-            CompPlot <- CompPlot + theme_grey()
-        }
-
-        CompPlot <- setLegendPosition(CompPlot, legendPosition, theme)
+        # Set the legend postion
+        CompPlot <- setLegendPosition(CompPlot, legendPosition)
 
         if (!missing(footnote)) {
             CompPlot <- addFootnote(CompPlot,

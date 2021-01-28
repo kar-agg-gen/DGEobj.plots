@@ -37,7 +37,6 @@ The Plotting functions are:
 * `comparePlot`: Compare LogRatios for two contrasts    
 * `obsPlot2`: Gene intensity boxplots (faceted)    
 * `logRatioPlot`: Plot logRatios +/- 95% confidence intervals    
-* `checkSex`: Plot X and Y chromosome genes to infer sex   
 * `plotDispersion`: Plot dispersion or BCV vs log intensity (type of QC plot)   
 * `plotNorm`: Plot density or boxplots before/after normalization  
 * `QCplots`: Plot selected alignment QC metrics
@@ -282,23 +281,6 @@ The companion function, `tidyContrasts()`, aids in reformatting topTable contras
 `tidyContrasts()` will accept a DGEobj as input and will find all topTable data in the DGEobj.  `tidyContrasts()` will also work with a list of topTable dataframes which provides flexibility to mix and match topTable data from multiple projects for plotting.
 
 See `?logratio` options to modify various attributes (color, shape, transparency, reference lines, etc).
-
-\newpage
-
-# checkSex Plot
-
-The `checkSex()` function uses expression intensity data from the X and Y chromosomes to infer sex.  When compared to actual sex annotation, this can help to identify sample labeling problems and swaps.  
-
-The XIST gene us used as an X-linked reporter gene that is well expressed in most tissues.  Since most Y-linked genes are expressed predominantly in testes, we scan for and use the highest expressed Y-linked gene for the analysis.
-
-You can provide the name of the annotated sex column in the design table and it will be used to color code the points.
-
-```
-sexPlot <- checkSex(dgeObj, species = "human", sexCol = "Sex")
-printAndSave(sexPlot, file.path(outputPath, "sexPlot.png"))
-```
-
-Note in this example each subject was tested twice.  There are two points from the same individual that are annotated male and plot as a female and vice versa.  Also, there are two points from one individual that plot in a position indicative of an XXY genotype.
 
 \newpage
 

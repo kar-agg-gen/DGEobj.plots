@@ -75,7 +75,7 @@ plotDispersion <- function(DGEdata,
             edgeR::estimateDisp(design = designMatrix, robust = TRUE, ...)
     }
 
-    if (tolower(plotValue == "dispersion")) {
+    if (tolower(plotValue) == "dispersion") {
         plotdata <- data.frame(AveLogCPM = dgelist$AveLogCPM, Dispersion = dgelist$tagwise.dispersion)
         title <- "EdgeR Dispersion Plot"
         ylab  <- "Dispersion"
@@ -95,11 +95,10 @@ plotDispersion <- function(DGEdata,
                                    colors                  = symbolColor,
                                    sizes                   = symbolSize,
                                    title                   = title,
-                                   yAxis                   = list(ylab),
+                                   yAxisTitle              = ylab,
                                    showLoessFit            = showLoessFit,
                                    fitLineColor            = linefitColor,
                                    fitLineStyle            = lineType)
-
     } else {
         MyDispPlot <- ggplot(plotdata, aes(x = AveLogCPM, y = Dispersion)) +
             geom_point(size = symbolSize,

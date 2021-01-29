@@ -227,7 +227,7 @@ profilePlot <- function(contrastDF,
         showLoessFit <- FALSE
         if (!is.null(lineFitType)) {
             lineFitColor <- paste(c("rgba(", paste(c(paste(col2rgb(lineFitColor, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-            showLoessFit <-TRUE
+            showLoessFit <- TRUE
         }
 
         # Footnote
@@ -235,6 +235,7 @@ profilePlot <- function(contrastDF,
             footnote <- NULL
         }
 
+        foldChangeMargin <- (foldChangeLines + (foldChangeLines * 0.2))
         profilePlot <- canvasXpress(data                    = cx.data,
                                     varAnnot                = var.annot,
                                     decorations             = decorations,
@@ -251,8 +252,8 @@ profilePlot <- function(contrastDF,
                                     xAxis                   = list(xlab),
                                     yAxis                   = list(ylab),
                                     sizeBy                  = sizeBy,
-                                    setMaxY                 = foldChangeLines,
-                                    setMinY                 = -1*foldChangeLines,
+                                    setMaxY                 = foldChangeMargin,
+                                    setMinY                 = -1*foldChangeMargin,
                                     citation                = footnote,
                                     citationFontSize        = footnoteSize,
                                     citationColor           = footnoteColor)

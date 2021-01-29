@@ -215,7 +215,7 @@ comparePlot <- function(compareDF,
                                      yAxis                   = list(ylab),
                                      citation                = footnote,
                                      citationFontSize        = footnoteSize,
-                                     citationColor           = "black")
+                                     citationColor           = footnoteColor)
         } else {
             CompPlot <- canvasXpress(data                    = compareDF[,c(x,y)],
                                      decorations             = decorations,
@@ -234,7 +234,7 @@ comparePlot <- function(compareDF,
                                      yAxis                   = list(ylab),
                                      citation                = footnote,
                                      citationFontSize        = footnoteSize,
-                                     citationColor           = "black")
+                                     citationColor           = footnoteColor)
         }
     } else {
         ssc <- data.frame(group = factor(x = levels, levels = levels),

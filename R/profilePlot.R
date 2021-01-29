@@ -31,7 +31,7 @@
 #' Increased, NoChange, Decreased.
 #'
 #' @param contrastDF Dataframe with LogIntensity and LogRatio columns and optionally a p-value or FDR column.
-#' @param plotType Plot type must be canvasxpress or ggplot (Default to ggplot).
+#' @param plotType Plot type must be canvasxpress or ggplot (Default to canvasXpress).
 #' @param logRatioCol Name of the LogRatio column (Default = "logFC")
 #' @param logIntCol Name of the LogIntensity column (Default = "AveExpr")
 #' @param pvalCol Name of the p-value or FDR column (Default = "P.Value")

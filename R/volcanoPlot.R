@@ -147,10 +147,10 @@ volcanoPlot <- function(contrastDF,
 
     if (sizeByIntensity == TRUE) {
         # Create a column to support sizeByIntensity
-        contrastDF$LogInt = contrastDF[[logIntCol]]
+        contrastDF$LogInt <- contrastDF[[logIntCol]]
         # Set a floor and a ceiling
-        contrastDF$LogInt[contrastDF$LogInt < 0] = 0
-        contrastDF$LogInt[contrastDF$LogInt > 10] = 10
+        contrastDF$LogInt[contrastDF$LogInt < 0] <- 0
+        contrastDF$LogInt[contrastDF$LogInt > 10] <- 10
     }
 
     groupNames <- c("Increased", "Decreased", "No Change")
@@ -169,13 +169,13 @@ volcanoPlot <- function(contrastDF,
     }
 
     # Now make the columnames suitable for use with aes_string
-    x = make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
-    colnames(contrastDF)[colnames(contrastDF) == logRatioCol] = make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
+    x <- make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
+    colnames(contrastDF)[colnames(contrastDF) == logRatioCol] <- make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
     # Make a log10significance column and make that the y column
-    contrastDF$NegativeLogP = -log10(contrastDF[,pvalCol])
-    y = "NegativeLogP"
+    contrastDF$NegativeLogP <- -1*log10(contrastDF[,pvalCol])
+    y <- "NegativeLogP"
 
-    contrastDF$group = NA
+    contrastDF$group <- NA
     for (i in seq(nrow(contrastDF))) {
         if (contrastDF[i, pvalCol] <= pthreshold) {
             if (contrastDF[i, logRatioCol] > 0) {
@@ -202,11 +202,27 @@ volcanoPlot <- function(contrastDF,
         symbolFill[3] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[3], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
 
         ## Create the canvasXpress df and var annotation
-        cx.data = data.frame(a = contrastDF[colnames(contrastDF) == x],
+        cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
                              b = contrastDF[colnames(contrastDF) == y])
-        colnames(cx.data) = c(x, y)
-        var.annot = data.frame(Group = contrastDF$group, LogInt = contrastDF$LogInt)
-        rownames(var.annot) = rownames(cx.data)
+        colnames(cx.data) <- c(x, y)
+        var.annot <- data.frame(Group = contrastDF$group, LogInt = contrastDF$LogInt)
+        rownames(var.annot) <- rownames(cx.data)
+        events <- NULL
+
+        if (!missing(geneSymCol)) {
+            var.annot <- cbind(var.annot, GeneLabel = contrastDF[[geneSymCol]])
+            events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
+                                                if (o != null && o != false) {
+                                                    if (o.objectType == null) {
+                                                        t.showInfoSpan(e, '<b>' + o.y.vars + '</b> <br/>' +
+                                                        '<b>' + 'GeneLabel'  + '</b>' + ': ' + o.z.GeneLabel[0] + '<br/>' +
+                                                        '<b>' + o.y.smps[0]  + '</b>' + ': ' + o.y.data[0][0] + '<br/>' +
+                                                        '<b>' + o.y.smps[1]  + '</b>' + ': ' + o.y.data[0][1]);
+                                                    } else {
+                                                        t.showInfoSpan(e, o.display);
+                                                    };
+                                                }; }}")
+        }
 
         # Optional Decorations
         sizeBy <- NULL
@@ -257,20 +273,21 @@ volcanoPlot <- function(contrastDF,
                                     setMinX                 = -1*foldChangeMargin,
                                     citation                = footnote,
                                     citationFontSize        = footnoteSize,
-                                    citationColor           = footnoteColor)
+                                    citationColor           = footnoteColor,
+                                    events                  = events)
 
     } else {
-        names(symbolShape) = groupNames
-        names(symbolSize)  = groupNames
-        names(symbolColor) = groupNames
-        names(symbolFill)  = groupNames
+        names(symbolShape) <- groupNames
+        names(symbolSize)  <- groupNames
+        names(symbolColor) <- groupNames
+        names(symbolFill)  <- groupNames
 
-        ssc = data.frame(group = groupNames,
-                         symbolShape = symbolShape,
-                         symbolSize = symbolSize,
-                         symbolColor = symbolColor,
-                         symbolFill = symbolFill,
-                         stringsAsFactors = FALSE)
+        ssc <- data.frame(group = groupNames,
+                          symbolShape = symbolShape,
+                          symbolSize = symbolSize,
+                          symbolColor = symbolColor,
+                          symbolFill = symbolFill,
+                          stringsAsFactors = FALSE)
 
         contrastDF <- contrastDF %>%
             dplyr::left_join(ssc)
@@ -313,7 +330,7 @@ volcanoPlot <- function(contrastDF,
         }
 
         # Add geneSym labels to increased & decreased genes
-        if (!missing(geneSymLabels) & !missing(geneSymCol)) {
+        if (!missing(geneSymLabels) && !missing(geneSymCol)) {
             # Filter contrastDF to changed genes
             idx <- contrastDF[[geneSymCol]] %in% geneSymLabels
             contrastDFsubset <- contrastDF[idx,]

@@ -6,6 +6,7 @@
 \usage{
 volcanoPlot(
   contrastDF,
+  plotType = "canvasXpress",
   logRatioCol = "logFC",
   logIntCol = "AveExpr",
   pvalCol = "P.Value",
@@ -25,10 +26,6 @@ volcanoPlot(
   foldChangeLines = log2(1.5),
   refLineThickness = 1,
   legendPosition = "right",
-  rugColor = NULL,
-  rugAlpha = 1,
-  baseFontSize = 12,
-  themeStyle = "grey",
   footnote,
   footnoteSize = 3,
   footnoteColor = "black",
@@ -38,6 +35,8 @@ volcanoPlot(
 \arguments{
 \item{contrastDF}{A dataframe with LogRatio and LogIntensity columns and optionally a
 p-value or FDR column (typically a topTable dataframe).}
+
+\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
 
 \item{logRatioCol}{Name of the LogRatio column (Default = "logFC")}
 
@@ -96,19 +95,6 @@ default = 0.7)}
 "nw", "sw", NULL. top/bottom/left/right place the legend outside the
 figure.  ne/se/nw/sw place the figure inside the figure. NULL disables the
 legend. Default = "right"}
-
-\item{rugColor}{Specify color for rug density plot along x and y axes. Set to NULL
-to disable rug layer. (Default = NULL)}
-
-\item{rugAlpha}{Sets the transparency for the rug layer.  An alpha <1.0 can take
-a long time to draw, so the default = 1.0.
-For a final plot try 0.1 or 0.2 for alpha for a more informative rug.}
-
-\item{baseFontSize}{The smallest size font in the figure in points. Default =
-12}
-
-\item{themeStyle}{"bw" or "grey" which correspond to theme_bw or theme_grey
-respectively. Default = bw"}
 
 \item{footnote}{Optional string placed right justified at bottom of plot.}
 

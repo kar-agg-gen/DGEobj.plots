@@ -7,7 +7,8 @@
 plotDispersion(
   DGEdata,
   designMatrix,
-  plotType = "dispersion",
+  plotType = "canvasXpress",
+  plotValue = "dispersion",
   symbolSize = 1,
   symbolShape = 1,
   symbolColor = "darkblue",
@@ -16,10 +17,8 @@ plotDispersion(
   linefitSize = 1,
   linefitColor = "yellow",
   lineFit = NULL,
-  lineType = 1,
+  lineType = "solid",
   lineAlpha = 1,
-  rugColor = NULL,
-  rugAlpha = 0.02,
   ...
 )
 }
@@ -28,7 +27,9 @@ plotDispersion(
 
 \item{designMatrix}{A design matrix created by stats::model.matrix (Required)}
 
-\item{plotType}{One of "dispersion" or "BCV" (Default = "dispersion")}
+\item{plotType}{Plot type must be canvasxpress or ggplot (Default to canvasXpress).}
+
+\item{plotValue}{One of "dispersion" or "BCV" (Default = "dispersion")}
 
 \item{symbolSize}{(Default = 1)}
 
@@ -49,13 +50,9 @@ indicate more transparency (Default = 0.3)}
 \item{lineFit}{(Default = NULL) Any type supported by geom_smooth (Loess is
 recommended).}
 
-\item{lineType}{Any ggplot2 lineType supported by geom_smooth (Default = 1, solid)}
+\item{lineType}{Any ggplot2 lineType supported by geom_smooth (Default = solid)}
 
 \item{lineAlpha}{Alpha desired for geom_smooth line (Default = 1)}
-
-\item{rugColor}{(Default = NULL)  Set to Null to disable rug plots.}
-
-\item{rugAlpha}{Transparency for the rug plots (Default = 0.02)}
 
 \item{...}{Extra parameters to pass to edgeR::estimateDisp}
 }

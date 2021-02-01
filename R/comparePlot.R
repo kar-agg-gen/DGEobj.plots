@@ -143,10 +143,21 @@ comparePlot <- function(compareDF,
     if (!is.null(compareDF[["xp"]]) & !is.null(compareDF[["yp"]])) {
         sigMeasurePlot <- TRUE
         #create group factor column in compareDF
-        compareDF$group <- "Not Significant"
-        compareDF$group[compareDF[["xp"]] <= pThreshold] <- "X Unique"
-        compareDF$group[compareDF[["yp"]] <= pThreshold] <- "Y Unique"
-        compareDF$group[(compareDF[["xp"]] <= pThreshold) & (compareDF[["yp"]] <= pThreshold)] <- "Common"
+
+       compareDF$group = NA
+        for (i in seq(nrow(compareDF))) {
+            if (compareDF[i, "xp"] <= pThreshold && compareDF[i, "yp"] <= pThreshold) {
+                compareDF$group[i] = "Common"
+            } else {
+                if (compareDF[i, "xp"] <= pThreshold) {
+                    compareDF$group[i] <- "X Unique"
+                } else if (compareDF[i, "yp"] <= pThreshold) {
+                    compareDF$group[i] <- "Y Unique"
+                } else {
+                    compareDF$group[i] <- "Not Significant"
+                }
+            }
+        }
 
         compareDF$group <- compareDF$group %>%
             factor(levels = levels)
@@ -211,8 +222,8 @@ comparePlot <- function(compareDF,
                                      sizeByShowLegend        = FALSE,
                                      title                   = title,
                                      subtitleScaleFontFactor = 0.5,
-                                     xAxis                   = list(xlab),
-                                     yAxis                   = list(ylab),
+                                     xAxisTitle              = xlab,
+                                     yAxisTitle              = ylab,
                                      citation                = footnote,
                                      citationFontSize        = footnoteSize,
                                      citationColor           = footnoteColor)
@@ -230,8 +241,8 @@ comparePlot <- function(compareDF,
                                      sizeByShowLegend        = FALSE,
                                      title                   = title,
                                      subtitleScaleFontFactor = 0.5,
-                                     xAxis                   = list(xlab),
-                                     yAxis                   = list(ylab),
+                                     xAxisTitle              = xlab,
+                                     yAxisTitle              = ylab,
                                      citation                = footnote,
                                      citationFontSize        = footnoteSize,
                                      citationColor           = footnoteColor)

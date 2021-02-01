@@ -109,10 +109,10 @@ volcanoPlot <- function(contrastDF,
                         geneSymLabels,
                         geneSymCol,
                         xlab = NULL, ylab = NULL, title = NULL,
-                        symbolSize = c(4, 3.999, 4),
-                        symbolShape = c(21, 1, 21),
-                        symbolColor = c("black", "grey25", "grey0"),
-                        symbolFill = c("red3", "grey25", "deepskyblue4"),
+                        symbolSize = c(4, 4, 2),
+                        symbolShape = c(21, 21, 1),
+                        symbolColor = c("black", "grey0", "grey25"),
+                        symbolFill = c("red3", "deepskyblue4", "grey25"),
                         alpha = 0.5,
                         sizeByIntensity = TRUE,
                         pthresholdLine = NULL,
@@ -241,13 +241,12 @@ volcanoPlot <- function(contrastDF,
         if (!is.null(foldChangeLines)) {
             decorations <- list(line = append(decorations$line, list(list(color = symbolFill[which(groupNames == "Increased")],
                                                                           width = refLineThickness,
-                                                                          y     = foldChangeLines),
+                                                                          x     = foldChangeLines),
                                                                      list(color = symbolFill[which(groupNames == "Decreased")],
                                                                           width = refLineThickness,
-                                                                          y     = -foldChangeLines)
+                                                                          x     = -1*foldChangeLines)
             )))
         }
-
 
         # Footnote
         if (missing(footnote)) {

@@ -166,15 +166,15 @@ profilePlot <- function(contrastDF,
     }
 
     # Now make the columnames suitable for use with aes_string
-    x = make.names(colnames(contrastDF)[colnames(contrastDF) == logIntCol])
-    y = make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
-    colnames(contrastDF)[colnames(contrastDF) == logIntCol] = make.names(colnames(contrastDF)[colnames(contrastDF) == logIntCol])
-    colnames(contrastDF)[colnames(contrastDF) == logRatioCol] = make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
+    x <- make.names(colnames(contrastDF)[colnames(contrastDF) == logIntCol])
+    y <- make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
+    colnames(contrastDF)[colnames(contrastDF) == logIntCol] <- make.names(colnames(contrastDF)[colnames(contrastDF) == logIntCol])
+    colnames(contrastDF)[colnames(contrastDF) == logRatioCol] <- make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
 
     # Need a NLP column for sizing
-    contrastDF$negLog10P = -log10(contrastDF[[pvalCol]])
+    contrastDF$negLog10P <- -log10(contrastDF[[pvalCol]])
 
-    contrastDF$group = NA
+    contrastDF$group <- NA
     for (i in seq(nrow(contrastDF))) {
         if (contrastDF[i, pvalCol] <= pthreshold) {
             if (contrastDF[i, logRatioCol] > 0) {
@@ -202,11 +202,27 @@ profilePlot <- function(contrastDF,
         symbolFill[3] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[3], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
 
         ## Create the canvasXpress df and var annotation
-        cx.data = data.frame(a = contrastDF[colnames(contrastDF) == x],
-                             b = contrastDF[colnames(contrastDF) == y])
-        colnames(cx.data) = c(x, y)
-        var.annot = data.frame(Group = contrastDF$group, nLog10pVal = contrastDF$negLog10P)
-        rownames(var.annot) = rownames(cx.data)
+        cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
+                              b = contrastDF[colnames(contrastDF) == y])
+        colnames(cx.data) <- c(x, y)
+        var.annot <- data.frame(Group = contrastDF$group, nLog10pVal = contrastDF$negLog10P)
+        rownames(var.annot) <- rownames(cx.data)
+        events <- NULL
+
+        if (!missing(geneSymCol)) {
+            var.annot <- cbind(var.annot, GeneLabel = contrastDF[[geneSymCol]])
+            events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
+                                                if (o != null && o != false) {
+                                                    if (o.objectType == null) {
+                                                        t.showInfoSpan(e, '<b>' + o.y.vars + '</b> <br/>' +
+                                                        '<b>' + 'GeneLabel'  + '</b>' + ': ' + o.z.GeneLabel[0] + '<br/>' +
+                                                        '<b>' + o.y.smps[0]  + '</b>' + ': ' + o.y.data[0][0] + '<br/>' +
+                                                        '<b>' + o.y.smps[1]  + '</b>' + ': ' + o.y.data[0][1]);
+                                                    } else {
+                                                        t.showInfoSpan(e, o.display);
+                                                    };
+                                                }; }}")
+        }
 
         # Optional Decorations
         sizeBy <- NULL
@@ -257,14 +273,15 @@ profilePlot <- function(contrastDF,
                                     sizes                   = c(4, 10, 12, 14, 16, 18, 20, 22, 24, 26),
                                     sizeByShowLegend        = sizeByShowLegend,
                                     title                   = title,
-                                    xAxis                   = list(xlab),
-                                    yAxis                   = list(ylab),
+                                    xAxisTitle              = list(xlab),
+                                    yAxisTitle              = list(ylab),
                                     sizeBy                  = sizeBy,
                                     setMaxY                 = foldChangeMargin,
                                     setMinY                 = -1*foldChangeMargin,
                                     citation                = footnote,
                                     citationFontSize        = footnoteSize,
-                                    citationColor           = footnoteColor)
+                                    citationColor           = footnoteColor,
+                                    events                  = events)
 
     } else {
         names(symbolShape) = groupNames

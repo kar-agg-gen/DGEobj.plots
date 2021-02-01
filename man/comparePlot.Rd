@@ -6,24 +6,20 @@
 \usage{
 comparePlot(
   compareDF,
+  plotType = "canvasXpress",
   pThreshold = 0.01,
   xlab = NULL,
   ylab = NULL,
   title = NULL,
-  symbolSize = c(4, 4, 4, 2),
+  symbolSize = c(10, 10, 10, 4),
   symbolShape = c(21, 21, 21, 20),
   symbolColor = c("black", "grey0", "grey1", "grey25"),
   symbolFill = c("darkgoldenrod1", "deepskyblue4", "red3", "grey25"),
   alpha = 0.5,
-  rugColor = NULL,
-  rugAlpha = 1,
   crosshair = "grey50",
   referenceLine = "darkgoldenrod1",
   refLineThickness = 1,
-  dens2D = TRUE,
   legendPosition = "right",
-  baseFontSize = 12,
-  themeStyle = "bw",
   footnote,
   footnoteSize = 3,
   footnoteColor = "black",
@@ -33,6 +29,8 @@ comparePlot(
 \arguments{
 \item{compareDF}{A dataframe with the first two columns representing the x and y variables.
 Optionally add xp and yp columns to hold p-values or FDR values.}
+
+\item{plotType}{Plot type must be canvasxpress or ggplot (Default to canvasXpress).}
 
 \item{pThreshold}{Used to color points (Default = 0.01)}
 
@@ -55,12 +53,6 @@ have no effect on other symbols. Default = c("darkgoldenrod1", "deepskyblue4", "
 
 \item{alpha}{Controls the transparency of the plotted points (0-1; Default = 0.5)}
 
-\item{rugColor}{Specify color for rug density plot along X and Y axes. Set to NULL
-to disable rug layer. (Default = NULL)}
-
-\item{rugAlpha}{Sets the transparency for the rug layer. alpha <1.0 takes
-a long time to draw, so for a final plot try 0.1 or 0.2 for alpha for more informative rug.}
-
 \item{crosshair}{Color for the crosshair; (Default = "grey50", NULL disables)
 See \url{http://research.stowers-institute.org/efg/R/Color/Chart}}
 
@@ -69,17 +61,9 @@ See \url{http://research.stowers-institute.org/efg/R/Color/Chart}}
 
 \item{refLineThickness}{Set thickness for crosshair and referenceLine (Default = 1)}
 
-\item{dens2D}{Overlay a density2D layer (Default = TRUE) Note: only applies
-to simple compare plot without p-value coloring.}
-
 \item{legendPosition}{One of "top", "bottom", "left", "right", "ne", "se", "nw", "sw", NULL.
 top/bottom/left/right place the legend outside the figure.  ne/se/nw/sw place the figure
 inside the figure. NULL disables the legend. Default = "right"}
-
-\item{baseFontSize}{The smallest size font in the figure in points. Default = 12}
-
-\item{themeStyle}{"bw" or "grey" which corresponds to theme_bw or theme_grey respectively.
-Default = "bw"}
 
 \item{footnote}{Optional string placed right justified at bottom of plot.}
 
@@ -101,14 +85,6 @@ common differentially expressed (DE) genes in different colors.
 }
 \details{
 Other options add an identity line (slope = 1, intercept = 0) and/or a crosshair at (0, 0).
-
-comparePlot has also been implemented with a scalable theme that makes it easy to scale font sizes larger
-or smaller for PPT or knitr output.  Add either theme_grey(n) or theme_bw(n),
-where n equals the base font size to adjust the text size (12 works well for knitr, 18 or 24 works well
-for PPT), e.g. MyPlot + theme_grey(18).  However, theme_grey() and theme_bw() have the
-side effect of resetting the legend position, and should not be used if the custom legend locations
-need to be preserved. Instead, utilize the baseFontSize
-argument in this function to set font sizes and preserve a custom legend location.
 
 \strong{Data Structure for the input dataframe:}
 

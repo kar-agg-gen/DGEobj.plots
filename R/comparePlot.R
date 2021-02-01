@@ -144,10 +144,10 @@ comparePlot <- function(compareDF,
         sigMeasurePlot <- TRUE
         #create group factor column in compareDF
 
-       compareDF$group = NA
+       compareDF$group <- NA
         for (i in seq(nrow(compareDF))) {
             if (compareDF[i, "xp"] <= pThreshold && compareDF[i, "yp"] <= pThreshold) {
-                compareDF$group[i] = "Common"
+                compareDF$group[i] <- "Common"
             } else {
                 if (compareDF[i, "xp"] <= pThreshold) {
                     compareDF$group[i] <- "X Unique"

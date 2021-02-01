@@ -31,7 +31,7 @@
 #' Increased, NoChange, Decreased.
 #'
 #' @param contrastDF Dataframe with LogIntensity and LogRatio columns and optionally a p-value or FDR column.
-#' @param plotType Plot type must be canvasxpress or ggplot (Default to ggplot).
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
 #' @param logRatioCol Name of the LogRatio column (Default = "logFC")
 #' @param logIntCol Name of the LogIntensity column (Default = "AveExpr")
 #' @param pvalCol Name of the p-value or FDR column (Default = "P.Value")
@@ -174,10 +174,18 @@ profilePlot <- function(contrastDF,
     # Need a NLP column for sizing
     contrastDF$negLog10P = -log10(contrastDF[[pvalCol]])
 
-
-    contrastDF$group <- "No Change"
-    contrastDF$group[(contrastDF[[pvalCol]] <= pthreshold) & (contrastDF[[logRatioCol]] > 0)]   <- "Increased"
-    contrastDF$group[(contrastDF[[pvalCol]] <= pthreshold) & (contrastDF[[logRatioCol]] < 0)]   <- "Decreased"
+    contrastDF$group = NA
+    for (i in seq(nrow(contrastDF))) {
+        if (contrastDF[i, pvalCol] <= pthreshold) {
+            if (contrastDF[i, logRatioCol] > 0) {
+                contrastDF$group[i] <- "Increased"
+            } else if (contrastDF[i, logRatioCol] < 0) {
+                contrastDF$group[i] <- "Decreased"
+            }
+        } else {
+            contrastDF$group[i] <- "No Change"
+        }
+    }
 
     contrastDF$group <- contrastDF$group %>%
         factor(levels = groupNames)

@@ -254,27 +254,26 @@ volcanoPlot <- function(contrastDF,
         }
 
         foldChangeMargin <- (foldChangeLines + (foldChangeLines * 0.2))
-        volcanoPlot <- canvasXpress(data                    = cx.data,
-                                    varAnnot                = var.annot,
-                                    decorations             = decorations,
-                                    graphType               = "Scatter2D",
-                                    colorBy                 = "Group",
-                                    colors                  = symbolFill,
-                                    legendPosition          = legendPosition,
-                                    showDecorations         = TRUE,
-                                    sizes                   = c(4, 10, 12, 14, 16, 18, 20, 22, 24, 26),
-                                    sizeByShowLegend        = sizeByShowLegend,
-                                    title                   = title,
-                                    xAxisTitle              = xlab,
-                                    yAxisTitle              = ylab,
-                                    sizeBy                  = sizeBy,
-                                    setMaxX                 = foldChangeMargin,
-                                    setMinX                 = -1*foldChangeMargin,
-                                    citation                = footnote,
-                                    citationFontSize        = footnoteSize,
-                                    citationColor           = footnoteColor,
-                                    events                  = events)
-
+        volcanoPlot <- canvasXpress::canvasXpress(data                    = cx.data,
+                                                  varAnnot                = var.annot,
+                                                  decorations             = decorations,
+                                                  graphType               = "Scatter2D",
+                                                  colorBy                 = "Group",
+                                                  colors                  = symbolFill,
+                                                  legendPosition          = legendPosition,
+                                                  showDecorations         = TRUE,
+                                                  sizes                   = c(4, 10, 12, 14, 16, 18, 20, 22, 24, 26),
+                                                  sizeByShowLegend        = sizeByShowLegend,
+                                                  title                   = title,
+                                                  xAxisTitle              = xlab,
+                                                  yAxisTitle              = ylab,
+                                                  sizeBy                  = sizeBy,
+                                                  setMaxX                 = foldChangeMargin,
+                                                  setMinX                 = -1*foldChangeMargin,
+                                                  citation                = footnote,
+                                                  citationFontSize        = footnoteSize,
+                                                  citationColor           = footnoteColor,
+                                                  events                  = events)
     } else {
         names(symbolShape) <- groupNames
         names(symbolSize)  <- groupNames

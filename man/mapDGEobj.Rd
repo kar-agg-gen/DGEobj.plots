@@ -4,10 +4,12 @@
 \alias{mapDGEobj}
 \title{Plot network of DGEobj relationships}
 \usage{
-mapDGEobj(dgeObj, directed = TRUE)
+mapDGEobj(dgeObj, plotType = "canvasXpress", directed = TRUE)
 }
 \arguments{
 \item{dgeObj}{DGEobj to find the parent/child relationships between data items.}
+
+\item{plotType}{Plot type must be canvasxpress or ggplot (Default to canvasXpress).}
 
 \item{directed}{Passed to igraph::graph_from_data_frame. Indicates if the graph should
 be directed or not. Default = TRUE.}

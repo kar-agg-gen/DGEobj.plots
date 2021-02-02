@@ -18,6 +18,7 @@ Language: en-US
 Encoding: UTF-8
 Imports:
     assertthat,
+    canvasXpress,
     DGEobj  (>= 1.0),
     DGEobj.utils, 
     dplyr   (>= 0.8),
@@ -30,7 +31,8 @@ Imports:
     stringr,
     utils,
     edgeR,
-    limma  (>= 3.38)
+    limma  (>= 3.38),
+    htmlwidgets
 Suggests:
     knitr,
     rmarkdown,

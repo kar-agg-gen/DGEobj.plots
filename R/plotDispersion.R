@@ -90,15 +90,15 @@ plotDispersion <- function(DGEdata,
         if (!is.null(lineFit)) {
             showLoessFit <- TRUE
         }
-        MyDispPlot <- canvasXpress(data                    = plotdata,
-                                   graphType               = "Scatter2D",
-                                   colors                  = symbolColor,
-                                   sizes                   = symbolSize,
-                                   title                   = title,
-                                   yAxisTitle              = ylab,
-                                   showLoessFit            = showLoessFit,
-                                   fitLineColor            = linefitColor,
-                                   fitLineStyle            = lineType)
+        MyDispPlot <- canvasXpress::canvasXpress(data                    = plotdata,
+                                                 graphType               = "Scatter2D",
+                                                 colors                  = symbolColor,
+                                                 sizes                   = symbolSize,
+                                                 title                   = title,
+                                                 yAxisTitle              = ylab,
+                                                 showLoessFit            = showLoessFit,
+                                                 fitLineColor            = linefitColor,
+                                                 fitLineStyle            = lineType)
     } else {
         MyDispPlot <- ggplot(plotdata, aes(x = AveLogCPM, y = Dispersion)) +
             geom_point(size = symbolSize,

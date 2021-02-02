@@ -165,7 +165,6 @@ profilePlot <- function(contrastDF,
         title <- ""
     }
 
-    # Now make the columnames suitable for use with aes_string
     x <- make.names(colnames(contrastDF)[colnames(contrastDF) == logIntCol])
     y <- make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
     colnames(contrastDF)[colnames(contrastDF) == logIntCol] <- make.names(colnames(contrastDF)[colnames(contrastDF) == logIntCol])

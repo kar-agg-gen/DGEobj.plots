@@ -175,14 +175,18 @@ profilePlot <- function(contrastDF,
 
     contrastDF$group <- NA
     for (i in seq(nrow(contrastDF))) {
-        if (contrastDF[i, pvalCol] <= pthreshold) {
-            if (contrastDF[i, logRatioCol] > 0) {
-                contrastDF$group[i] <- "Increased"
-            } else if (contrastDF[i, logRatioCol] < 0) {
-                contrastDF$group[i] <- "Decreased"
+        if (!is.na(contrastDF[i, pvalCol])) {
+            if (contrastDF[i, pvalCol] <= pthreshold) {
+                if (!is.na(contrastDF[i, logRatioCol])) {
+                    if (contrastDF[i, logRatioCol] > 0) {
+                        contrastDF$group[i] <- "Increased"
+                    } else if (contrastDF[i, logRatioCol] < 0) {
+                        contrastDF$group[i] <- "Decreased"
+                    }
+                }
+            } else {
+                contrastDF$group[i] <- "No Change"
             }
-        } else {
-            contrastDF$group[i] <- "No Change"
         }
     }
 

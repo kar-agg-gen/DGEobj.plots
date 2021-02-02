@@ -146,15 +146,17 @@ comparePlot <- function(compareDF,
 
        compareDF$group <- NA
         for (i in seq(nrow(compareDF))) {
-            if (compareDF[i, "xp"] <= pThreshold && compareDF[i, "yp"] <= pThreshold) {
-                compareDF$group[i] <- "Common"
-            } else {
-                if (compareDF[i, "xp"] <= pThreshold) {
-                    compareDF$group[i] <- "X Unique"
-                } else if (compareDF[i, "yp"] <= pThreshold) {
-                    compareDF$group[i] <- "Y Unique"
+            if (!is.na(compareDF[i, "xp"]) && !is.na(compareDF[i, "yp"])) {
+                if (compareDF[i, "xp"] <= pThreshold && compareDF[i, "yp"] <= pThreshold) {
+                    compareDF$group[i] <- "Common"
                 } else {
-                    compareDF$group[i] <- "Not Significant"
+                    if (compareDF[i, "xp"] <= pThreshold) {
+                        compareDF$group[i] <- "X Unique"
+                    } else if (compareDF[i, "yp"] <= pThreshold) {
+                        compareDF$group[i] <- "Y Unique"
+                    } else {
+                        compareDF$group[i] <- "Not Significant"
+                    }
                 }
             }
         }

@@ -4,7 +4,7 @@
 #' data items in the DGEobj.
 #'
 #' @param dgeObj DGEobj to find the parent/child relationships between data items.
-#' @param plotType Plot type must be canvasxpress or ggplot (Default to canvasXpress).
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
 #' @param directed Passed to igraph::graph_from_data_frame. Indicates if the graph should
 #'     be directed or not. Default = TRUE.
 #'

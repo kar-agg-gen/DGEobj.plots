@@ -6,6 +6,7 @@
 \usage{
 cdfPlot(
   contrastDF,
+  plotType = "canvasXpress",
   pvalCol = "P.Value",
   pThreshold = 0.01,
   xlab = NULL,
@@ -18,13 +19,12 @@ cdfPlot(
   symbolFill = c("red3", "deepskyblue4"),
   alpha = 1,
   referenceLine = NULL,
-  refLineThickness = 1,
-  legendPosition = "se",
+  refLineThickness = 3,
+  legendPosition = "right",
   baseFontSize = 12,
   viewportX = 0.15,
   viewportY = 0.93,
   viewportWidth = 0.35,
-  themeStyle = "grey",
   pvalMax = 0.1,
   printPlot = TRUE,
   footnote,
@@ -35,6 +35,8 @@ cdfPlot(
 }
 \arguments{
 \item{contrastDF}{A dataframe with LogRatio and LogIntensity columns and optionally a p-value or FDR column.}
+
+\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
 
 \item{pvalCol}{Name of the p-value or FDR column (Default = "P.Value")}
 
@@ -74,7 +76,7 @@ Note: Colors cannot be duplicated.}
 
 \item{refLineThickness}{Set thickness of the reference line (Default = 1)}
 
-\item{legendPosition}{(Default = "se")}
+\item{legendPosition}{(Default = "right")}
 
 \item{baseFontSize}{The smallest size font in the figure in points. (Default
 = 12)}
@@ -84,9 +86,6 @@ Note: Colors cannot be duplicated.}
 \item{viewportY}{(Default = 0.93)}
 
 \item{viewportWidth}{(Default = 0.35)}
-
-\item{themeStyle}{"bw" or "grey" which correspond to theme_bw or theme_grey
-respectively. (Default = "grey")}
 
 \item{pvalMax}{Limit the range of the main plot (Default = 0.10)}
 
@@ -100,12 +99,10 @@ respectively. (Default = "grey")}
 \item{footnoteColor}{Applies to footnote. (Default = "black")}
 
 \item{footnoteJust}{Value 0 - 1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)}
-
-\item{plotType}{One of "dispersion" or "BCV" (Default = "dispersion")}
 }
 \value{
-A list containing main plot, inset plot, and viewport. The plot can be
-   reconstructed with print(myList$main); print(inset, vp = myList$viewport)
+A list containing main plot, inset plot for both plotType. For plotType ='ggplot' list contains viewport, The plot can be
+   reconstructed with print(cdfPlot$main); print(inset, vp = cdfPlot$viewport)
 }
 \description{
 CDF plots are a good complement to p-value histograms as a way to evaluate

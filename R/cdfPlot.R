@@ -57,14 +57,12 @@
 #' @param referenceLine Color for an horizontal line drawn at the p-threshold
 #'   (Default = NULL; NULL disables, set to desired color to enable)
 #' @param refLineThickness Set thickness of the reference line (Default = 1)
-#' @param legendPosition (Default = "se")
+#' @param legendPosition (Default = "right")
 #' @param baseFontSize The smallest size font in the figure in points. (Default
 #'   = 12)
 #' @param viewportX (Default = 0.15)
 #' @param viewportY (Default = 0.93)
 #' @param viewportWidth (Default = 0.35)
-#' @param themeStyle "bw" or "grey" which correspond to theme_bw or theme_grey
-#'   respectively. (Default = "grey")
 #' @param printPlot Specify printing the combined plot to the console/knitr
 #'   (Default = TRUE)
 #' @param footnote Optional string placed right justified at bottom of plot.
@@ -72,7 +70,7 @@
 #' @param footnoteColor Applies to footnote. (Default = "black")
 #' @param footnoteJust Value 0 - 1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)
 #'
-#' @return A list containing main plot, inset plot, and viewport. The plot can be
+#' @return A list containing main plot, inset plot for both plotType. For plotType ='ggplot' list contains viewport, The plot can be
 #'    reconstructed with print(cdfPlot$main); print(inset, vp = cdfPlot$viewport)
 #'
 #' @examples
@@ -84,6 +82,7 @@
 #' @importFrom grid viewport
 #' @importFrom dplyr arrange left_join
 #' @importFrom assertthat assert_that
+#' @importFrom canvasXpress canvasXpress
 #'
 #' @export
 cdfPlot <- function(contrastDF,
@@ -99,12 +98,11 @@ cdfPlot <- function(contrastDF,
                     alpha = 1,
                     referenceLine = NULL,
                     refLineThickness = 3,
-                    legendPosition = "se",
+                    legendPosition = "right",
                     baseFontSize = 12,
                     viewportX = 0.15,
                     viewportY = 0.93,
                     viewportWidth = 0.35,
-                    themeStyle = "grey",
                     pvalMax = 0.10,
                     printPlot = TRUE,
                     footnote,
@@ -144,6 +142,10 @@ cdfPlot <- function(contrastDF,
         title = ""
     }
 
+    if (is.null(insetTitle)) {
+        insetTitle = ""
+    }
+
     # Combo PLOT: full data inset, most significant data in main plot
     # Rank by p-value
     contrastDF <- contrastDF %>%
@@ -167,21 +169,39 @@ cdfPlot <- function(contrastDF,
     contrastDF$order[NotSig] <- 1
     contrastDF$order[Sig] <- 2
 
+    # Rows to include in the zoomed in plot
+    subsetRows <- sum(contrastDF[[y]] <= pvalMax)
+    contrastDFsubset <- contrastDF[1:subsetRows,]
+
     if (plotType == "canvasXpress") {
         ## Create the canvasXpress df and var annotation
+        # Main plot
         cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
                               b = contrastDF[colnames(contrastDF) == y])
         colnames(cx.data) <- c(x, y)
         var.annot <- data.frame(Group = contrastDF$group)
         rownames(var.annot) <- rownames(cx.data)
-        decorations <- list()
 
+        # Inst plot
+        cx.data.subset <- data.frame(a = contrastDFsubset[colnames(contrastDFsubset) == x],
+                              b = contrastDFsubset[colnames(contrastDFsubset) == y])
+        colnames(cx.data.subset) <- c(x, y)
+        var.annot.subset <- data.frame(Group = contrastDFsubset$group)
+        rownames(var.annot.subset) <- rownames(cx.data.subset)
+
+        decorations <- list()
         if (!is.null(referenceLine)) {
             referenceLine <- paste(c("rgba(", paste(c(paste(col2rgb(referenceLine, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
             decorations <- list(line = list(list(color = referenceLine, width = refLineThickness, y = pThreshold)))
         }
-       # events <- NULL
-        cdfPlot <- canvasXpress::canvasXpress(data                    = cx.data,
+
+        # Footnote
+        if (missing(footnote)) {
+            footnote <- NULL
+        }
+        maxY <- pThreshold + pThreshold*0.2
+
+        cdfMain <- canvasXpress::canvasXpress(data                    = cx.data,
                                               varAnnot                = var.annot,
                                               decorations             = decorations,
                                               graphType               = "Scatter2D",
@@ -192,7 +212,22 @@ cdfPlot <- function(contrastDF,
                                               yAxisTitle              = ylab,
                                               citation                = footnote,
                                               citationFontSize        = footnoteSize,
-                                              citationColor           = footnoteColor)
+                                              citationColor           = footnoteColor,
+                                              setMaxY                 = maxY)
+
+        cdfInset <- canvasXpress::canvasXpress(data                    = cx.data.subset,
+                                               varAnnot                = var.annot.subset,
+                                               graphType               = "Scatter2D",
+                                               colorBy                 = "Group",
+                                               colors                  = symbolFill,
+                                               title                   = insetTitle,
+                                               xAxisTitle              = xlab,
+                                               yAxisTitle              = ylab,
+                                               citation                = footnote,
+                                               citationFontSize        = footnoteSize,
+                                               citationColor           = footnoteColor,
+                                               setMaxY                 = max(contrastDFsubset[[y]]))
+        cdfPlot <- list("main" = cdfMain, "inset" = cdfInset)
     } else {
         names(symbolShape) <- groupNames
         names(symbolSize)  <- groupNames
@@ -208,10 +243,6 @@ cdfPlot <- function(contrastDF,
 
         contrastDF <- contrastDF %>%
             dplyr::left_join(ssc)
-
-        # Rows to include in the zoomed in plot
-        subsetRows <- sum(contrastDF[[y]] <= pvalMax)
-        contrastDFsubset <- contrastDF[1:subsetRows,]
 
         # Plot subset percent of the data for the main plot
         cdfMain <- ggplot(contrastDFsubset, aes_string(x = x, y = y)) +
@@ -231,29 +262,12 @@ cdfPlot <- function(contrastDF,
         }
 
         # Add Labels
-        if (is.null(xlab)) { # Use colname unless supplied as argument
-            cdfMain <- cdfMain + xlab(xlabel)
-        } else {
-            cdfMain <- cdfMain + xlab(xlab)
-        }
-        if (is.null(ylab)) {
-            cdfMain <- cdfMain + ylab(ylabel)
-        } else {
-            cdfMain <- cdfMain + ylab(ylab)
-        }
-        if (!is.null(title)) {
-            cdfMain <- cdfMain +
-                ggtitle(title)
-        }
+        cdfMain <- cdfMain +
+            xlab(xlab) +
+            ylab(ylab) +
+            ggtitle(title)
 
-        # Set the font size before placing the legend
-        if (tolower(themeStyle) == "bw") {
-            cdfMain <- cdfMain + theme_bw(baseFontSize)
-        } else {
-            cdfMain <- cdfMain + theme_grey(baseFontSize)
-        }
-
-        cdfMain <- setLegendPosition(cdfMain, legendPosition, themeStyle)
+        cdfMain <- setLegendPosition(cdfMain, legendPosition)
 
         if (!missing(footnote)) {
             cdfMain <- addFootnote(cdfMain,
@@ -283,30 +297,14 @@ cdfPlot <- function(contrastDF,
             geom_point(alpha = alpha)
 
         # Add Labels
-        if (is.null(xlab)) { # Use colname unless supplied as argument
-            cdfInset <- cdfInset + xlab(xlabel)
-        } else {
-            cdfInset <- cdfInset + xlab(xlab)
-        }
-        if (is.null(ylab)) {
-            cdfInset <- cdfInset + ylab(ylabel)
-        } else {
-            cdfInset <- cdfInset + ylab(ylab)
-        }
-        if (!is.null(insetTitle)) {
-            cdfInset <- cdfInset +
-                ggtitle(insetTitle)
-        }
+        cdfInset <- cdfInset +
+            xlab(xlab) +
+            ylab(ylab) +
+            ggtitle(insetTitle)
 
         # Adjust font size for inset.
         factor <- 4/baseFontSize
-
-        # Set the font size
-        if (tolower(themeStyle) == "bw") {
-            cdfInset <- cdfInset + theme_bw() + baseTheme(baseFontSize*factor)
-        } else {
-            cdfInset <- cdfInset + theme_grey() + baseTheme(baseFontSize*factor)
-        }
+        cdfInset <- cdfInset + baseTheme(baseFontSize*factor)
 
         # Adjust viewport Y if main Title present
         vy <- viewportY
@@ -314,6 +312,7 @@ cdfPlot <- function(contrastDF,
             adjust <- (baseFontSize/150)
             vy <- viewportY - adjust
         }
+
         # A viewport taking up a fraction of the plot area (upper left)
         vp <- grid::viewport(width = viewportWidth, height = viewportWidth,
                              x = viewportX, y = vy,

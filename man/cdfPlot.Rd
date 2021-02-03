@@ -100,6 +100,8 @@ respectively. (Default = "grey")}
 \item{footnoteColor}{Applies to footnote. (Default = "black")}
 
 \item{footnoteJust}{Value 0 - 1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)}
+
+\item{plotType}{One of "dispersion" or "BCV" (Default = "dispersion")}
 }
 \value{
 A list containing main plot, inset plot, and viewport. The plot can be

@@ -30,6 +30,7 @@
 #' this order: Significant, Not Significant.
 #'
 #' @param contrastDF A dataframe with LogRatio and LogIntensity columns and optionally a p-value or FDR column.
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
 #' @param pvalCol Name of the p-value or FDR column (Default = "P.Value")
 #' @param pvalMax Limit the range of the main plot (Default = 0.10)
 #' @param pThreshold Used to color points (default = 0.01)
@@ -72,7 +73,7 @@
 #' @param footnoteJust Value 0 - 1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)
 #'
 #' @return A list containing main plot, inset plot, and viewport. The plot can be
-#'    reconstructed with print(myList$main); print(inset, vp = myList$viewport)
+#'    reconstructed with print(cdfPlot$main); print(inset, vp = cdfPlot$viewport)
 #'
 #' @examples
 #' \dontrun{
@@ -86,6 +87,7 @@
 #'
 #' @export
 cdfPlot <- function(contrastDF,
+                    plotType = "canvasXpress",
                     pvalCol = "P.Value",
                     pThreshold = 0.01,
                     xlab = NULL, ylab = NULL,
@@ -96,7 +98,7 @@ cdfPlot <- function(contrastDF,
                     symbolFill = c("red3", "deepskyblue4"),
                     alpha = 1,
                     referenceLine = NULL,
-                    refLineThickness = 1,
+                    refLineThickness = 3,
                     legendPosition = "se",
                     baseFontSize = 12,
                     viewportX = 0.15,
@@ -113,6 +115,8 @@ cdfPlot <- function(contrastDF,
 
     assertthat::assert_that(pvalCol %in% colnames(contrastDF),
                             msg = "Specified pvalCol not found in the supplied dataframe (contrastDF).")
+    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
+                            msg = "Plot type must be either ggplot or canvasXpress.")
 
     if (!missing(symbolSize) || !missing(symbolShape) || !missing(symbolColor) || !missing(symbolFill)) {
         assertthat::assert_that(!length(symbolSize) == 2,
@@ -122,26 +126,23 @@ cdfPlot <- function(contrastDF,
                                 msg = "All specified symbol arguments must be of length 2, including symbolSize, symbolShape, symbolColor, and symbolFill.")
     }
 
-    names(symbolShape) <- c("Significant", "Not Significant")
-    names(symbolSize)  <- c("Significant", "Not Significant")
-    names(symbolColor) <- c("Significant", "Not Significant")
-    names(symbolFill)  <- c("Significant", "Not Significant")
-
-    ssc <- data.frame(group = c("Significant", "Not Significant"),
-                      symbolShape = symbolShape,
-                      symbolSize = symbolSize,
-                      symbolColor = symbolColor,
-                      symbolFill = symbolFill,
-                      order = c(1, 2),
-                      stringsAsFactors = FALSE) %>%
-        dplyr::arrange(order) # Setting the order defines the legend order
-
+    groupNames <- c("Significant", "Not Significant")
     # Columns to plot
     # Capture the labels from the colname
-    xlabel <- "Rank"
-    ylabel <- pvalCol
-    x <- xlabel
-    y <- ylabel
+    x <- "Rank"
+    y <- pvalCol
+
+    if (is.null(xlab)) {
+        xlab <- x
+    }
+
+    if (is.null(ylab)) {
+        ylab <- y
+    }
+
+    if (is.null(title)) {
+        title = ""
+    }
 
     # Combo PLOT: full data inset, most significant data in main plot
     # Rank by p-value
@@ -157,131 +158,173 @@ cdfPlot <- function(contrastDF,
     contrastDF$group <- NA
     contrastDF$group[Sig] <- "Significant"
     contrastDF$group[NotSig] <- "Not Significant"
-    contrastDF <- contrastDF %>%
-        dplyr::left_join(ssc)
+
     contrastDF$group <- contrastDF$group %>%
-        factor(levels = c("Significant", "Not Significant"))
+        factor(levels = groupNames)
 
     # Set an order field to force plotting of NotSig first
     contrastDF$order <- NA
     contrastDF$order[NotSig] <- 1
     contrastDF$order[Sig] <- 2
 
-    # Rows to include in the zoomed in plot
-    subsetRows <- sum(contrastDF[[y]] <= pvalMax)
-    contrastDFsubset <- contrastDF[1:subsetRows,]
+    if (plotType == "canvasXpress") {
+        ## Create the canvasXpress df and var annotation
+        cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
+                              b = contrastDF[colnames(contrastDF) == y])
+        colnames(cx.data) <- c(x, y)
+        var.annot <- data.frame(Group = contrastDF$group)
+        rownames(var.annot) <- rownames(cx.data)
+        decorations <- list()
 
-    # Plot subset percent of the data for the main plot
-    cdfMain <- ggplot(contrastDFsubset, aes_string(x = x, y = y)) +
-        aes(shape = group, size = group, color = group, fill = group, order = order) +
-        # Scale lines tell it to use the actual values, not treat them as factors
-        scale_shape_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolShape) +
-        scale_size_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolSize) +
-        scale_color_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolColor) +
-        scale_fill_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolFill) +
-        geom_point(alpha = alpha)
-
-    # Optional Decorations
-    if (!is.null(referenceLine)) {
-        cdfMain <- cdfMain +
-            geom_hline(yintercept = pThreshold, color = referenceLine,
-                       size = refLineThickness, alpha = 0.5)
-    }
-
-    # Add Labels
-    if (is.null(xlab)) { # Use colname unless supplied as argument
-        cdfMain <- cdfMain + xlab(xlabel)
+        if (!is.null(referenceLine)) {
+            referenceLine <- paste(c("rgba(", paste(c(paste(col2rgb(referenceLine, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+            decorations <- list(line = list(list(color = referenceLine, width = refLineThickness, y = pThreshold)))
+        }
+       # events <- NULL
+        cdfPlot <- canvasXpress::canvasXpress(data                    = cx.data,
+                                              varAnnot                = var.annot,
+                                              decorations             = decorations,
+                                              graphType               = "Scatter2D",
+                                              colorBy                 = "Group",
+                                              colors                  = symbolFill,
+                                              title                   = title,
+                                              xAxisTitle              = xlab,
+                                              yAxisTitle              = ylab,
+                                              citation                = footnote,
+                                              citationFontSize        = footnoteSize,
+                                              citationColor           = footnoteColor)
     } else {
-        cdfMain <- cdfMain + xlab(xlab)
-    }
-    if (is.null(ylab)) {
-        cdfMain <- cdfMain + ylab(ylabel)
-    } else {
-        cdfMain <- cdfMain + ylab(ylab)
-    }
-    if (!is.null(title)) {
-        cdfMain <- cdfMain +
-            ggtitle(title)
-    }
+        names(symbolShape) <- groupNames
+        names(symbolSize)  <- groupNames
+        names(symbolColor) <- groupNames
+        names(symbolFill)  <- groupNames
 
-    # Set the font size before placing the legend
-    if (tolower(themeStyle) == "bw") {
-        cdfMain <- cdfMain + theme_bw(baseFontSize)
-    } else {
-        cdfMain <- cdfMain + theme_grey(baseFontSize)
+        ssc <- data.frame(group = groupNames,
+                          symbolShape = symbolShape,
+                          symbolSize = symbolSize,
+                          symbolColor = symbolColor,
+                          symbolFill = symbolFill,
+                          stringsAsFactors = FALSE)
+
+        contrastDF <- contrastDF %>%
+            dplyr::left_join(ssc)
+
+        # Rows to include in the zoomed in plot
+        subsetRows <- sum(contrastDF[[y]] <= pvalMax)
+        contrastDFsubset <- contrastDF[1:subsetRows,]
+
+        # Plot subset percent of the data for the main plot
+        cdfMain <- ggplot(contrastDFsubset, aes_string(x = x, y = y)) +
+            aes(shape = group, size = group, color = group, fill = group, order = order) +
+            # Scale lines tell it to use the actual values, not treat them as factors
+            scale_shape_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolShape) +
+            scale_size_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolSize) +
+            scale_color_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolColor) +
+            scale_fill_manual(name = "Group", guide = "legend", labels = ssc$group, values = ssc$symbolFill) +
+            geom_point(alpha = alpha)
+
+        # Optional Decorations
+        if (!is.null(referenceLine)) {
+            cdfMain <- cdfMain +
+                geom_hline(yintercept = pThreshold, color = referenceLine,
+                           size = refLineThickness, alpha = 0.5)
+        }
+
+        # Add Labels
+        if (is.null(xlab)) { # Use colname unless supplied as argument
+            cdfMain <- cdfMain + xlab(xlabel)
+        } else {
+            cdfMain <- cdfMain + xlab(xlab)
+        }
+        if (is.null(ylab)) {
+            cdfMain <- cdfMain + ylab(ylabel)
+        } else {
+            cdfMain <- cdfMain + ylab(ylab)
+        }
+        if (!is.null(title)) {
+            cdfMain <- cdfMain +
+                ggtitle(title)
+        }
+
+        # Set the font size before placing the legend
+        if (tolower(themeStyle) == "bw") {
+            cdfMain <- cdfMain + theme_bw(baseFontSize)
+        } else {
+            cdfMain <- cdfMain + theme_grey(baseFontSize)
+        }
+
+        cdfMain <- setLegendPosition(cdfMain, legendPosition, themeStyle)
+
+        if (!missing(footnote)) {
+            cdfMain <- addFootnote(cdfMain,
+                                   footnoteText = footnote,
+                                   footnoteSize = footnoteSize,
+                                   footnoteColor = footnoteColor,
+                                   footnoteJust = footnoteJust)
+        }
+
+        # Set up the inset plot with All Data
+        cdfInset <- ggplot(contrastDF, aes_string(x = x, y = y)) +
+            aes(shape = group, size = group,
+                color = group, fill = group,
+                order = order) +
+            # Scale lines tell it to use the actual values, not treat them as factors
+            scale_shape_manual(name = "Group", guide = "none", labels = ssc$group,
+                               values = ssc$symbolShape) +
+            scale_size_manual(name = "Group", guide = "none", labels = ssc$group,
+                              values = ssc$symbolSize) +
+            scale_color_manual(name = "Group", guide = "none", labels = ssc$group,
+                               values = ssc$symbolColor) +
+            scale_fill_manual(name = "Group", guide = "none", labels = ssc$group,
+                              values = ssc$symbolFill) +
+            geom_rect(xmin = 0, xmax = subsetRows,
+                      ymin = 0, ymax = max(contrastDFsubset[[y]]), color = "lightblue",
+                      fill = "lightblue", alpha = 0.2) +
+            geom_point(alpha = alpha)
+
+        # Add Labels
+        if (is.null(xlab)) { # Use colname unless supplied as argument
+            cdfInset <- cdfInset + xlab(xlabel)
+        } else {
+            cdfInset <- cdfInset + xlab(xlab)
+        }
+        if (is.null(ylab)) {
+            cdfInset <- cdfInset + ylab(ylabel)
+        } else {
+            cdfInset <- cdfInset + ylab(ylab)
+        }
+        if (!is.null(insetTitle)) {
+            cdfInset <- cdfInset +
+                ggtitle(insetTitle)
+        }
+
+        # Adjust font size for inset.
+        factor <- 4/baseFontSize
+
+        # Set the font size
+        if (tolower(themeStyle) == "bw") {
+            cdfInset <- cdfInset + theme_bw() + baseTheme(baseFontSize*factor)
+        } else {
+            cdfInset <- cdfInset + theme_grey() + baseTheme(baseFontSize*factor)
+        }
+
+        # Adjust viewport Y if main Title present
+        vy <- viewportY
+        if (!is.null(title)) {
+            adjust <- (baseFontSize/150)
+            vy <- viewportY - adjust
+        }
+        # A viewport taking up a fraction of the plot area (upper left)
+        vp <- grid::viewport(width = viewportWidth, height = viewportWidth,
+                             x = viewportX, y = vy,
+                             just = c("left", "top"))
+
+        if (printPlot == TRUE) {
+            print(cdfMain)
+            print(cdfInset, vp = vp)
+        }
+
+        cdfPlot <- list(main = cdfMain, inset = cdfInset, viewport = vp)
     }
-
-    cdfMain <- setLegendPosition(cdfMain, legendPosition, themeStyle)
-
-    if (!missing(footnote)) {
-        cdfMain <- addFootnote(cdfMain,
-                               footnoteText = footnote,
-                               footnoteSize = footnoteSize,
-                               footnoteColor = "black",
-                               footnoteJust = footnoteJust)
-    }
-
-    # Set up the inset plot with All Data
-    cdfInset <- ggplot(contrastDF, aes_string(x = x, y = y)) +
-        aes(shape = group, size = group,
-            color = group, fill = group,
-            order = order) +
-        # Scale lines tell it to use the actual values, not treat them as factors
-        scale_shape_manual(name = "Group", guide = "none", labels = ssc$group,
-                           values = ssc$symbolShape) +
-        scale_size_manual(name = "Group", guide = "none", labels = ssc$group,
-                          values = ssc$symbolSize) +
-        scale_color_manual(name = "Group", guide = "none", labels = ssc$group,
-                           values = ssc$symbolColor) +
-        scale_fill_manual(name = "Group", guide = "none", labels = ssc$group,
-                          values = ssc$symbolFill) +
-        geom_rect(xmin = 0, xmax = subsetRows,
-                  ymin = 0, ymax = max(contrastDFsubset[[y]]), color = "lightblue",
-                  fill = "lightblue", alpha = 0.2) +
-        geom_point(alpha = alpha)
-
-    # Add Labels
-    if (is.null(xlab)) { # Use colname unless supplied as argument
-        cdfInset <- cdfInset + xlab(xlabel)
-    } else {
-        cdfInset <- cdfInset + xlab(xlab)
-    }
-    if (is.null(ylab)) {
-        cdfInset <- cdfInset + ylab(ylabel)
-    } else {
-        cdfInset <- cdfInset + ylab(ylab)
-    }
-    if (!is.null(insetTitle)) {
-        cdfInset <- cdfInset +
-            ggtitle(insetTitle)
-    }
-
-    # Adjust font size for inset.
-    factor <- 4/baseFontSize
-
-    # Set the font size
-    if (tolower(themeStyle) == "bw") {
-        cdfInset <- cdfInset + theme_bw() + baseTheme(baseFontSize*factor)
-    } else {
-        cdfInset <- cdfInset + theme_grey() + baseTheme(baseFontSize*factor)
-    }
-
-    # Adjust viewport Y if main Title present
-    vy <- viewportY
-    if (!is.null(title)) {
-        adjust <- (baseFontSize/150)
-        vy <- viewportY - adjust
-    }
-    # A viewport taking up a fraction of the plot area (upper left)
-    vp <- grid::viewport(width = viewportWidth, height = viewportWidth,
-                         x = viewportX, y = vy,
-                         just = c("left", "top"))
-
-    if (printPlot == TRUE) {
-        print(cdfMain)
-        print(cdfInset, vp = vp)
-    }
-
-    MyList <- list(main = cdfMain, inset = cdfInset, viewport = vp)
-    return(MyList)
+    return(cdfPlot)
 }

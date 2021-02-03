@@ -110,7 +110,7 @@ inside the figure. NULL disables the legend. Default = "right"}
 \item{footnoteJust}{Value 0-1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)}
 }
 \value{
-ggplot object
+canvasxpress or ggplot object based on plotType selection
 }
 \description{
 A profile plot shows Log Intensity on the X axis and Log Ratio on the Y axis.

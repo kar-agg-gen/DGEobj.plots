@@ -78,7 +78,7 @@
 #' @param footnoteColor Applies to footnote. (Default = "black")
 #' @param footnoteJust Value 0-1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)
 #'
-#' @return ggplot object
+#' @return canvasxpress or ggplot object based on plotType selection
 #'
 #' @examples
 #' \dontrun{
@@ -101,6 +101,8 @@
 #' @importFrom dplyr left_join filter arrange
 #' @importFrom assertthat assert_that
 #' @importFrom ggrepel geom_text_repel
+#' @importFrom canvasXpress canvasXpress
+#' @importFrom htmlwidgets JS
 #'
 #' @export
 profilePlot <- function(contrastDF,
@@ -230,6 +232,8 @@ profilePlot <- function(contrastDF,
         # Optional Decorations
         sizeBy <- NULL
         sizeByShowLegend <- FALSE
+        decorations <- list()
+
         if (sizeBySignificance == TRUE) {
             sizeBy <- "nLog10pVal"
             sizeByShowLegend <- TRUE
@@ -276,8 +280,8 @@ profilePlot <- function(contrastDF,
                                                   sizes                   = c(4, 10, 12, 14, 16, 18, 20, 22, 24, 26),
                                                   sizeByShowLegend        = sizeByShowLegend,
                                                   title                   = title,
-                                                  xAxisTitle              = list(xlab),
-                                                  yAxisTitle              = list(ylab),
+                                                  xAxisTitle              = xlab,
+                                                  yAxisTitle              = ylab,
                                                   sizeBy                  = sizeBy,
                                                   setMaxY                 = foldChangeMargin,
                                                   setMinY                 = -1*foldChangeMargin,
@@ -378,7 +382,7 @@ profilePlot <- function(contrastDF,
             profilePlot <- addFootnote(profilePlot,
                                        footnoteText = footnote,
                                        footnoteSize = footnoteSize,
-                                       footnoteColor = "black",
+                                       footnoteColor = footnoteColor,
                                        footnoteJust = footnoteJust)
         }
 

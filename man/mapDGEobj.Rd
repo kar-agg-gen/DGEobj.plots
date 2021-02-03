@@ -15,7 +15,7 @@ mapDGEobj(dgeObj, plotType = "canvasXpress", directed = TRUE)
 be directed or not. Default = TRUE.}
 }
 \value{
-A class igraph network object.
+A class igraph network object for plotType ggplot and canvasxpress network plot for plotType canvasxpress.
 }
 \description{
 Reads a DGEobj and produces a node pair file defining parent/child relationships between
@@ -26,14 +26,18 @@ data items in the DGEobj.
   library(igraph)
   library(RColorBrewer)
 
-  # Prepare an iGraph object for plotting
+  # Prepare canvasxpress network plot
   mynet <- mapDGEobj(dgeObj)
+
+  # Prepare an iGraph object for plotting
+  mynet <- mapDGEobj(dgeObj, plotType = "ggplot")
 
   # Define a layout
   lay.sug <- layout_with_sugiyama(mynet)
 
   # 2D Plot
   plot(mynet,
+       plotType = "ggplot",
        edge.arrow.size = .3,
        vertex.color = "dodgerblue2",
        vertex.frame.color = "dodgerblue4",
@@ -44,6 +48,7 @@ data items in the DGEobj.
   myPallet <- pal[as.numeric(as.factor(vertex_attr(mynet, "basetype")))]
 
   plot(mynet,
+       plotType = "ggplot",
        edge.arrow.size = .3,
        vertex.color = myPallet,
        vertex.label.family = "Helvetica",

@@ -8,21 +8,25 @@
 #' @param directed Passed to igraph::graph_from_data_frame. Indicates if the graph should
 #'     be directed or not. Default = TRUE.
 #'
-#' @return A class igraph network object.
+#' @return A class igraph network object for plotType ggplot and canvasxpress network plot for plotType canvasxpress.
 #'
 #' @examples
 #' \dontrun{
 #'   library(igraph)
 #'   library(RColorBrewer)
 #'
-#'   # Prepare an iGraph object for plotting
+#'   # Prepare canvasxpress network plot
 #'   mynet <- mapDGEobj(dgeObj)
+#'
+#'   # Prepare an iGraph object for plotting
+#'   mynet <- mapDGEobj(dgeObj, plotType = "ggplot")
 #'
 #'   # Define a layout
 #'   lay.sug <- layout_with_sugiyama(mynet)
 #'
 #'   # 2D Plot
 #'   plot(mynet,
+#'        plotType = "ggplot",
 #'        edge.arrow.size = .3,
 #'        vertex.color = "dodgerblue2",
 #'        vertex.frame.color = "dodgerblue4",
@@ -33,6 +37,7 @@
 #'   myPallet <- pal[as.numeric(as.factor(vertex_attr(mynet, "basetype")))]
 #'
 #'   plot(mynet,
+#'        plotType = "ggplot",
 #'        edge.arrow.size = .3,
 #'        vertex.color = myPallet,
 #'        vertex.label.family = "Helvetica",
@@ -51,6 +56,8 @@
 #' @import magrittr
 #' @importFrom assertthat assert_that
 #' @importFrom igraph graph_from_data_frame
+#' @importFrom canvasXpress canvasXpress
+#' @importFrom htmlwidgets JS
 #'
 #' @export
 mapDGEobj <- function(dgeObj, plotType = "canvasXpress", directed = TRUE) {

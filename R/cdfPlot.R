@@ -223,9 +223,6 @@ cdfPlot <- function(contrastDF,
                                                title                   = insetTitle,
                                                xAxisTitle              = xlab,
                                                yAxisTitle              = ylab,
-                                               citation                = footnote,
-                                               citationFontSize        = footnoteSize,
-                                               citationColor           = footnoteColor,
                                                setMaxY                 = max(contrastDFsubset[[y]]))
         cdfPlot <- list("main" = cdfMain, "inset" = cdfInset)
     } else {

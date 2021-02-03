@@ -358,7 +358,7 @@ volcanoPlot <- function(contrastDF,
             volcanoPlot <- addFootnote(volcanoPlot,
                                        footnoteText = footnote,
                                        footnoteSize = footnoteSize,
-                                       footnoteColor = "black",
+                                       footnoteColor = footnoteColor,
                                        footnoteJust = footnoteJust)
         }
     }

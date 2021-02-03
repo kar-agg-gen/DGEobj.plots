@@ -31,7 +31,7 @@
 #'
 #' @param compareDF A dataframe with the first two columns representing the x and y variables.
 #'          Optionally add xp and yp columns to hold p-values or FDR values.
-#' @param plotType Plot type must be canvasxpress or ggplot (Default to canvasXpress).
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
 #' @param xlab X-axis label (Default to first column name)
 #' @param ylab Y-axis label (Default to second column name)
 #' @param title Plot title (Optional)

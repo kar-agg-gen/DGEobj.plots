@@ -30,7 +30,7 @@ comparePlot(
 \item{compareDF}{A dataframe with the first two columns representing the x and y variables.
 Optionally add xp and yp columns to hold p-values or FDR values.}
 
-\item{plotType}{Plot type must be canvasxpress or ggplot (Default to canvasXpress).}
+\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
 
 \item{pThreshold}{Used to color points (Default = 0.01)}
 

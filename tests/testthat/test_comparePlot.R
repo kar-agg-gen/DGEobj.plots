@@ -38,7 +38,7 @@ test_that("comparePlot.R: comparePlot()", {
                  regexp = "Need at least two numeric columns in compareDF.")
     expect_error(comparePlot(t_obj1$design),
                  regexp = "Need at least two numeric columns in compareDF.")
-    expect_error(comparePlot(compareDat,plotType = "cx"),
+    expect_error(comparePlot(compareDat, plotType = "cx"),
                  regexp = "Plot type must be either ggplot or canvasXpress.")
 
     # failing function with Symbol argument length < 4

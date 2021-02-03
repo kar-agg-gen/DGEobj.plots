@@ -2,9 +2,9 @@ context("DGEobj.plots - tests for cdfPlot.R functions")
 
 
 test_that("cdfPlot.R: cdfPlot()", {
-    skip_if(!("RG_fit" %in% names(t_obj1)))
+    skip_if(!("ReplicateGroupDesign_fit" %in% names(t_obj1)))
 
-    top_table <- topTable(t_obj1$RG_fit, number = 100)
+    top_table <- topTable(t_obj1$ReplicateGroupDesign_fit, number = 100)
 
     # testing plot with default values.
     plot <- cdfPlot(top_table, referenceLine = "blue")

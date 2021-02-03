@@ -16,10 +16,10 @@ volcanoPlot(
   xlab = NULL,
   ylab = NULL,
   title = NULL,
-  symbolSize = c(4, 3.999, 4),
-  symbolShape = c(21, 1, 21),
-  symbolColor = c("black", "grey25", "grey0"),
-  symbolFill = c("red3", "grey25", "deepskyblue4"),
+  symbolSize = c(4, 4, 2),
+  symbolShape = c(21, 21, 1),
+  symbolColor = c("black", "grey0", "grey25"),
+  symbolFill = c("red3", "deepskyblue4", "grey25"),
   alpha = 0.5,
   sizeByIntensity = TRUE,
   pthresholdLine = NULL,
@@ -105,7 +105,7 @@ legend. Default = "right"}
 \item{footnoteJust}{Value 0 - 1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)}
 }
 \value{
-ggplot object containing volcano plot
+canvasxpress or ggplot object based on plotType selection
 }
 \description{
 A volcano plot shows Log Ratio data on the X axis and Negative Log P-values (NLP) on the
@@ -153,7 +153,7 @@ Increased, NoChange, Decreased.
                          xlab = "Log2 Ratio", ylab = "Log10 BHFDR",
                          title = "Profile Plot Title",
                          referenceLine = "blue",
-                         legendPosition = "ne")
+                         legendPosition = "right")
 }
 
 }

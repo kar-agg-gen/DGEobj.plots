@@ -77,7 +77,7 @@
 #' @param footnoteColor Applies to footnote. (Default = "black")
 #' @param footnoteJust Value 0 - 1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)
 #'
-#' @return ggplot object containing volcano plot
+#' @return canvasxpress or ggplot object based on plotType selection
 #'
 #' @examples
 #' \dontrun{
@@ -93,12 +93,15 @@
 #'                          xlab = "Log2 Ratio", ylab = "Log10 BHFDR",
 #'                          title = "Profile Plot Title",
 #'                          referenceLine = "blue",
-#'                          legendPosition = "ne")
+#'                          legendPosition = "right")
 #' }
 #'
 #' @import ggplot2 magrittr
 #' @importFrom dplyr left_join
 #' @importFrom ggrepel geom_text_repel
+#' @importFrom canvasXpress canvasXpress
+#' @importFrom htmlwidgets JS
+#'
 #' @export
 volcanoPlot <- function(contrastDF,
                         plotType = "canvasXpress",

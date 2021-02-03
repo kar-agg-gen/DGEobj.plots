@@ -7,7 +7,7 @@
 #'
 #' @param DGEdata Counts matrix or DGEList (Required)
 #' @param designMatrix A design matrix created by stats::model.matrix (Required)
-#' @param plotType Plot type must be canvasxpress or ggplot (Default to canvasXpress).
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
 #' @param plotValue One of "dispersion" or "BCV" (Default = "dispersion")
 #' @param symbolSize (Default = 1)
 #' @param symbolShape see

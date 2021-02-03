@@ -27,7 +27,7 @@ plotDispersion(
 
 \item{designMatrix}{A design matrix created by stats::model.matrix (Required)}
 
-\item{plotType}{Plot type must be canvasxpress or ggplot (Default to canvasXpress).}
+\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
 
 \item{plotValue}{One of "dispersion" or "BCV" (Default = "dispersion")}
 

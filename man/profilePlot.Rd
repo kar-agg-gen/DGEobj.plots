@@ -158,7 +158,7 @@ Increased, NoChange, Decreased.
                          xlab = "Log2Intensity", ylab = "Log2Ratio",
                          title = "Profile Plot Title",
                          referenceLine = "blue",
-                         legendPosition = "ne")
+                         legendPosition = "right")
 }
 
 }

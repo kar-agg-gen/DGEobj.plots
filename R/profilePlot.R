@@ -94,7 +94,7 @@
 #'                          xlab = "Log2Intensity", ylab = "Log2Ratio",
 #'                          title = "Profile Plot Title",
 #'                          referenceLine = "blue",
-#'                          legendPosition = "ne")
+#'                          legendPosition = "right")
 #' }
 #'
 #' @import ggplot2 magrittr

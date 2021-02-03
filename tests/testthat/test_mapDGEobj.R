@@ -3,7 +3,7 @@ context("DGEobj.plots - tests for mapDGEobj.R functions")
 
 test_that('mapDGEobj.R: mapDGEobj()', {
     map_DGEobj <- mapDGEobj(t_obj1)
-    expect_s3_class(map_DGEobj, c("canvasXpress". "htmlwidget"))
+    expect_s3_class(map_DGEobj, c("canvasXpress", "htmlwidget"))
 
     map_DGEobj <- mapDGEobj(t_obj1, plotType = "ggplot")
     expect_s3_class(map_DGEobj, "igraph")

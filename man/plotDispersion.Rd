@@ -57,7 +57,7 @@ recommended).}
 \item{...}{Extra parameters to pass to edgeR::estimateDisp}
 }
 \value{
-A ggplot object
+canvasxpress or ggplot object based on plotType selection
 }
 \description{
 Creates an edgeR dispersion plot for RNA-Seq QC purposes.  Takes a counts matrix
@@ -67,8 +67,13 @@ dispersion) against AveLogCPM.
 }
 \examples{
 \dontrun{
-   myGgplot <- plotDispersion(myDGElist)
-   myGgplot <- plotDispersion(myDGEobj)
+   # canvasxpress plot
+   myCxplot <- plotDispersion(myDGElist)
+   myCxplot <- plotDispersion(myDGEobj)
+
+   # ggplot
+   myGgplot <- plotDispersion(myDGElist, plotType = "ggplot")
+   myGgplot <- plotDispersion(myDGEobj, plotType = "ggplot")
 }
 
 }

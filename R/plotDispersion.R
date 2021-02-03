@@ -24,16 +24,22 @@
 #' @param lineAlpha Alpha desired for geom_smooth line (Default = 1)
 #' @param ... Extra parameters to pass to edgeR::estimateDisp
 #'
-#' @return A ggplot object
+#' @return canvasxpress or ggplot object based on plotType selection
 #'
 #' @examples
 #' \dontrun{
-#'    myGgplot <- plotDispersion(myDGElist)
-#'    myGgplot <- plotDispersion(myDGEobj)
+#'    # canvasxpress plot
+#'    myCxplot <- plotDispersion(myDGElist)
+#'    myCxplot <- plotDispersion(myDGEobj)
+#'
+#'    # ggplot
+#'    myGgplot <- plotDispersion(myDGElist, plotType = "ggplot")
+#'    myGgplot <- plotDispersion(myDGEobj, plotType = "ggplot")
 #' }
 #'
 #' @importFrom assertthat assert_that
 #' @importFrom edgeR calcNormFactors estimateDisp DGEList
+#' @importFrom canvasXpress canvasXpress
 #'
 #' @export
 plotDispersion <- function(DGEdata,

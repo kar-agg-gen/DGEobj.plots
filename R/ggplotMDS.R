@@ -1,7 +1,7 @@
-#' Create limma MDS plot using ggplot2
+#' Create limma MDS plot
 #'
 #' This is a wrapper around the plotMDS function that generates the plot with
-#' ggplot2 instead of base graphics.
+#' canvasXpress or ggplot2 instead of base graphics.
 #'
 #' colorBy, shapeBy, and sizeBy are grouping variables that encode group info by
 #' color, shape, or size.  These are vectors that must be the same length as
@@ -18,6 +18,7 @@
 #'
 #' @param DGEdata A DGEList object taken after normalization
 #'   OR a DGEobj that contains a DGEList OR a log2cpm matrix. (Required)
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
 #' @param colorBy A grouping vector to color by (e.g. ReplicateGroup) (Required)
 #' @param shapeBy A grouping vector to map to shape (Optional)
 #' @param sizeBy A numeric vector to define point size (Optional)
@@ -64,12 +65,14 @@
 #' }
 #'
 #' @import ggplot2 magrittr ggrepel
+#' @import canvasXpress canvasXpress
 #' @importFrom assertthat assert_that
 #' @importFrom limma plotMDS
 #' @importFrom stats as.dist
 #'
 #' @export
 ggplotMDS <- function(DGEdata,
+                      plotType = "canvasXpress",
                       colorBy,
                       shapeBy,
                       sizeBy,
@@ -115,6 +118,8 @@ ggplotMDS <- function(DGEdata,
 
     assertthat::assert_that(class(DGEdata) %in% c("DGEobj", "DGEList", "matrix"),
                             msg = "DGEdata must be of class 'DGEList', 'DGEobj', or 'matrix'.")
+    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
+                            msg = "Plot type must be either ggplot or canvasXpress.")
 
     if ("DGEobj" %in% class(DGEdata)) {
         DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
@@ -210,83 +215,87 @@ ggplotMDS <- function(DGEdata,
         xylab[[2]] <- Ylab
     }
 
-    if (byShape == FALSE & bySize == FALSE) {
-        mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode)) +
-            geom_point(shape = symShape, size = symSize, alpha = alpha)
-    } else if (byShape == TRUE & bySize == FALSE) {
-        mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode, shape = Shape)) +
-            geom_point(size = symSize, alpha = alpha) +
-            scale_shape_manual(values = shapes)
-    } else if (byShape == FALSE & bySize == TRUE) {
-        mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode, size = Size)) +
-            geom_point(shape = symShape, alpha = alpha)
-    } else if (byShape == TRUE & bySize == TRUE) {
-        mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode, shape = Shape, size = Size)) +
-            geom_point(alpha = alpha) +
-            scale_shape_manual(values = shapes)
-    }
+    if (plotType == "canvasXpress") {
 
-    if (!is.null(labels)) {
-        if (missing(labelSize)) {
-            mdsplot <- mdsplot +
-                ggrepel::geom_text_repel(aes(label = Labels))
-        } else {
-            mdsplot <- mdsplot +
-                ggrepel::geom_text_repel(aes(label = Labels), size = labelSize)
-        }
-    }
-
-    # For discrete color values
-    if (length(unique(colorBy)) <= length(colors)) {
-        mdsplot <- mdsplot +
-            scale_fill_manual(values = colors) +
-            scale_colour_manual(values = colors)
-    }
-
-    # Add some other common elements
-    mdsplot <- mdsplot +
-        coord_fixed() +
-        xlab(xylab[[1]]) +
-        ylab(xylab[[2]]) +
-        ggtitle(title)
-
-    # Place an annotation on the bottom left of the plot
-    xrange <- xrange(mdsplot)
-    yrange <- yrange(mdsplot)
-    # Put the annotation 10% from xmin
-    xpos <- xrange[1] + ((xrange[2] - xrange[1]) * 0.1 )
-    alabel <- paste("top ", mds$top, " genes : gene.selection = ",
-                    mds$gene.selection, sep = "")
-    mdsplot <- mdsplot + annotate("text", x = xpos, y = yrange[1],
-                                  label = alabel, hjust = 0,
-                                  size = rel(2.5), color = "grey30")
-
-    if (!missing(hlineIntercept)) {
-        mdsplot <- mdsplot + geom_hline(yintercept = hlineIntercept,
-                                        color = reflineColor,
-                                        size = reflineSize)
-    }
-    if (!missing(vlineIntercept)) {
-        mdsplot <- mdsplot + geom_vline(xintercept = vlineIntercept,
-                                        color = reflineColor,
-                                        size = reflineSize)
-    }
-
-    # Edit legend titles
-    if (!missing(colorName)) {
-        mdsplot <- mdsplot + labs(color = colorName)
-    }
-    if (!missing(shapeName) && byShape == TRUE) {
-        mdsplot <- mdsplot + labs(shape = shapeName)
-    }
-    if (!missing(sizeName) && bySize == TRUE) {
-        mdsplot <- mdsplot + labs(size = shapeName)
-    }
-
-    if (tolower(themeStyle) %in% c("grey", "gray")) {
-        mdsplot <- mdsplot + theme_grey(baseFontSize)
     } else {
-        mdsplot <- mdsplot + theme_bw(baseFontSize)
+        if (byShape == FALSE & bySize == FALSE) {
+            mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode)) +
+                geom_point(shape = symShape, size = symSize, alpha = alpha)
+        } else if (byShape == TRUE & bySize == FALSE) {
+            mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode, shape = Shape)) +
+                geom_point(size = symSize, alpha = alpha) +
+                scale_shape_manual(values = shapes)
+        } else if (byShape == FALSE & bySize == TRUE) {
+            mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode, size = Size)) +
+                geom_point(shape = symShape, alpha = alpha)
+        } else if (byShape == TRUE & bySize == TRUE) {
+            mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode, shape = Shape, size = Size)) +
+                geom_point(alpha = alpha) +
+                scale_shape_manual(values = shapes)
+        }
+
+        if (!is.null(labels)) {
+            if (missing(labelSize)) {
+                mdsplot <- mdsplot +
+                    ggrepel::geom_text_repel(aes(label = Labels))
+            } else {
+                mdsplot <- mdsplot +
+                    ggrepel::geom_text_repel(aes(label = Labels), size = labelSize)
+            }
+        }
+
+        # For discrete color values
+        if (length(unique(colorBy)) <= length(colors)) {
+            mdsplot <- mdsplot +
+                scale_fill_manual(values = colors) +
+                scale_colour_manual(values = colors)
+        }
+
+        # Add some other common elements
+        mdsplot <- mdsplot +
+            coord_fixed() +
+            xlab(xylab[[1]]) +
+            ylab(xylab[[2]]) +
+            ggtitle(title)
+
+        # Place an annotation on the bottom left of the plot
+        xrange <- xrange(mdsplot)
+        yrange <- yrange(mdsplot)
+        # Put the annotation 10% from xmin
+        xpos <- xrange[1] + ((xrange[2] - xrange[1]) * 0.1 )
+        alabel <- paste("top ", mds$top, " genes : gene.selection = ",
+                        mds$gene.selection, sep = "")
+        mdsplot <- mdsplot + annotate("text", x = xpos, y = yrange[1],
+                                      label = alabel, hjust = 0,
+                                      size = rel(2.5), color = "grey30")
+
+        if (!missing(hlineIntercept)) {
+            mdsplot <- mdsplot + geom_hline(yintercept = hlineIntercept,
+                                            color = reflineColor,
+                                            size = reflineSize)
+        }
+        if (!missing(vlineIntercept)) {
+            mdsplot <- mdsplot + geom_vline(xintercept = vlineIntercept,
+                                            color = reflineColor,
+                                            size = reflineSize)
+        }
+
+        # Edit legend titles
+        if (!missing(colorName)) {
+            mdsplot <- mdsplot + labs(color = colorName)
+        }
+        if (!missing(shapeName) && byShape == TRUE) {
+            mdsplot <- mdsplot + labs(shape = shapeName)
+        }
+        if (!missing(sizeName) && bySize == TRUE) {
+            mdsplot <- mdsplot + labs(size = shapeName)
+        }
+
+        if (tolower(themeStyle) %in% c("grey", "gray")) {
+            mdsplot <- mdsplot + theme_grey(baseFontSize)
+        } else {
+            mdsplot <- mdsplot + theme_bw(baseFontSize)
+        }
     }
 
     return(list(plot = mdsplot, mdsobj = mds))

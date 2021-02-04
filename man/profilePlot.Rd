@@ -26,7 +26,7 @@ profilePlot(
   foldChangeLines = log2(1.5),
   refLineThickness = 1,
   lineFitType = "loess",
-  lineFitColor = "goldenrod1",
+  lineFitColor = "yellow",
   legendPosition = "right",
   footnote,
   footnoteSize = 3,

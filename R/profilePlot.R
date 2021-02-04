@@ -124,7 +124,7 @@ profilePlot <- function(contrastDF,
                         foldChangeLines = log2(1.5),
                         refLineThickness = 1,
                         lineFitType = "loess",
-                        lineFitColor = "goldenrod1",
+                        lineFitColor = "yellow",
                         legendPosition = "right",
                         footnote,
                         footnoteSize = 3,
@@ -176,29 +176,15 @@ profilePlot <- function(contrastDF,
     contrastDF$negLog10P <- -log10(contrastDF[[pvalCol]])
 
     contrastDF$group <- NA
-    for (i in seq(nrow(contrastDF))) {
-        if (!is.na(contrastDF[i, pvalCol])) {
-            if (contrastDF[i, pvalCol] <= pthreshold) {
-                if (!is.na(contrastDF[i, logRatioCol])) {
-                    if (contrastDF[i, logRatioCol] > 0) {
-                        contrastDF$group[i] <- "Increased"
-                    } else if (contrastDF[i, logRatioCol] < 0) {
-                        contrastDF$group[i] <- "Decreased"
-                    }
-                }
-            } else {
-                contrastDF$group[i] <- "No Change"
-            }
-        }
-    }
-
+    contrastDF$group <- ifelse(contrastDF[[pvalCol]] <= pthreshold,
+                               ifelse(contrastDF[[logRatioCol]] >= 0, "Increased", "Decreased"),
+                               "No Change")
     contrastDF$group <- contrastDF$group %>%
         factor(levels = groupNames)
 
     # Set an order field to force plotting of NoChange first
     contrastDF$order <- 0
     contrastDF$order[contrastDF$group %in% c("Increased", "Decreased")] <- 1
-
 
     # plotType
     if (plotType == "canvasXpress") {
@@ -256,9 +242,16 @@ profilePlot <- function(contrastDF,
         }
 
         showLoessFit <- FALSE
+        afterRender <- NULL
         if (!is.null(lineFitType)) {
+            lineFitType <- cxSupportedLineFit(lineFitType)
             lineFitColor <- paste(c("rgba(", paste(c(paste(col2rgb(lineFitColor, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-            showLoessFit <- TRUE
+
+            if (lineFitType == "lm") {
+                afterRender <- list(list("addRegressionLine"))
+            } else if (lineFitType == "loess") {
+                showLoessFit <- TRUE
+            }
         }
 
         # Footnote
@@ -276,7 +269,7 @@ profilePlot <- function(contrastDF,
                                                   legendPosition          = legendPosition,
                                                   showDecorations         = TRUE,
                                                   showLoessFit            = showLoessFit,
-                                                  loessColor              = lineFitColor,
+                                                  fitLineColor            = lineFitColor,
                                                   sizes                   = c(4, 10, 12, 14, 16, 18, 20, 22, 24, 26),
                                                   sizeByShowLegend        = sizeByShowLegend,
                                                   title                   = title,
@@ -288,7 +281,8 @@ profilePlot <- function(contrastDF,
                                                   citation                = footnote,
                                                   citationFontSize        = footnoteSize,
                                                   citationColor           = footnoteColor,
-                                                  events                  = events)
+                                                  events                  = events,
+                                                  afterRender             = afterRender)
 
     } else {
         names(symbolShape) = groupNames

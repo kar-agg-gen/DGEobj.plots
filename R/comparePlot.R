@@ -129,14 +129,18 @@ comparePlot <- function(compareDF,
     levels <- c("Common", "X Unique", "Y Unique", "Not Significant")
 
     # Capture the labels from the colname
-    if (is.null(xlab)) { # Use colname unless supplied as argument
+    if (is.null(xlab)) {
         xlab <- colnames(compareDF)[1]
     }
 
     if (is.null(ylab)) {
         ylab <- colnames(compareDF)[2]
     }
-    # Now make the column names suitable for use with aes_string
+
+    if (is.null(title)) {
+        title = ""
+    }
+
     x <- make.names(colnames(compareDF)[1])
     y <- make.names(colnames(compareDF)[2])
     colnames(compareDF)[1:2] <- make.names(colnames(compareDF)[1:2])
@@ -145,7 +149,7 @@ comparePlot <- function(compareDF,
         sigMeasurePlot <- TRUE
         #create group factor column in compareDF
 
-       compareDF$group <- NA
+        compareDF$group <- NA
         for (i in seq(nrow(compareDF))) {
             if (!is.na(compareDF[i, "xp"]) && !is.na(compareDF[i, "yp"])) {
                 if (compareDF[i, "xp"] <= pThreshold && compareDF[i, "yp"] <= pThreshold) {
@@ -181,6 +185,7 @@ comparePlot <- function(compareDF,
         symbolFill[2] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[2], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
         symbolFill[3] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[3], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
         symbolFill[4] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[4], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        decorations <- list()
 
         if (!is.null(crosshair)) {
             crosshair <- paste(c("rgba(", paste(c(paste(col2rgb(crosshair, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
@@ -224,7 +229,6 @@ comparePlot <- function(compareDF,
                                                    sizes                   = as.numeric(symbolSize[c(1,4,2,3)]),
                                                    sizeByShowLegend        = FALSE,
                                                    title                   = title,
-                                                   subtitleScaleFontFactor = 0.5,
                                                    xAxisTitle              = xlab,
                                                    yAxisTitle              = ylab,
                                                    citation                = footnote,
@@ -243,7 +247,6 @@ comparePlot <- function(compareDF,
                                                    sizes                   = as.numeric(symbolSize[2]),
                                                    sizeByShowLegend        = FALSE,
                                                    title                   = title,
-                                                   subtitleScaleFontFactor = 0.5,
                                                    xAxisTitle              = xlab,
                                                    yAxisTitle              = ylab,
                                                    citation                = footnote,
@@ -259,7 +262,7 @@ comparePlot <- function(compareDF,
                           stringsAsFactors = FALSE)
 
         # Used to set uniform square scale
-        scalemax <- compareDF[,1:2] %>% as.matrix %>% abs %>% max %>% multiply_by(1.05)
+        scalemax <- compareDF[, 1:2] %>% as.matrix %>% abs %>% max %>% multiply_by(1.05)
 
         if (sigMeasurePlot) {
             compareDF <- compareDF %>%
@@ -293,10 +296,10 @@ comparePlot <- function(compareDF,
                 coord_equal(xlim = c(-scalemax, scalemax), ylim = c(-scalemax, scalemax))
         }
 
-        CompPlot <- CompPlot + xlab(xlab) + ylab(ylab)
-        if (!is.null(title)) {
-            CompPlot <- CompPlot + ggtitle(title)
-        }
+        CompPlot <- CompPlot +
+            xlab(xlab) +
+            ylab(ylab) +
+            ggtitle(title)
 
         if (!is.null(crosshair)) {
             CompPlot <- CompPlot +

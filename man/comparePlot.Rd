@@ -74,7 +74,7 @@ inside the figure. NULL disables the legend. Default = "right"}
 \item{footnoteJust}{Value 0-1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)}
 }
 \value{
-ggplot object
+canvasxpress or ggplot object based on plotType selection
 }
 \description{
 Creates a nicely formatted scatterplot of the
@@ -130,7 +130,7 @@ values are used.
                         title = "Plot Title",
                         crosshair = "red",
                         referenceLine = "blue",
-                        legendPosition = "nw")
+                        legendPosition = "right")
 }
 
 }

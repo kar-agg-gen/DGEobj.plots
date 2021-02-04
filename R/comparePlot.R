@@ -57,7 +57,7 @@
 #' @param footnoteColor Applies to footnote. (Default = "black")
 #' @param footnoteJust Value 0-1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)
 #'
-#' @return ggplot object
+#' @return canvasxpress or ggplot object based on plotType selection
 #'
 #' @examples
 #' \dontrun{
@@ -82,12 +82,13 @@
 #'                         title = "Plot Title",
 #'                         crosshair = "red",
 #'                         referenceLine = "blue",
-#'                         legendPosition = "nw")
+#'                         legendPosition = "right")
 #' }
 #'
 #' @import ggplot2 magrittr
 #' @importFrom dplyr left_join
 #' @importFrom assertthat assert_that
+#' @importFrom canvasXpress canvasXpress
 #'
 #' @export
 comparePlot <- function(compareDF,

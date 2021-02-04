@@ -148,24 +148,10 @@ comparePlot <- function(compareDF,
     if (!is.null(compareDF[["xp"]]) & !is.null(compareDF[["yp"]])) {
         sigMeasurePlot <- TRUE
         #create group factor column in compareDF
-
         compareDF$group <- NA
-        for (i in seq(nrow(compareDF))) {
-            if (!is.na(compareDF[i, "xp"]) && !is.na(compareDF[i, "yp"])) {
-                if (compareDF[i, "xp"] <= pThreshold && compareDF[i, "yp"] <= pThreshold) {
-                    compareDF$group[i] <- "Common"
-                } else {
-                    if (compareDF[i, "xp"] <= pThreshold) {
-                        compareDF$group[i] <- "X Unique"
-                    } else if (compareDF[i, "yp"] <= pThreshold) {
-                        compareDF$group[i] <- "Y Unique"
-                    } else {
-                        compareDF$group[i] <- "Not Significant"
-                    }
-                }
-            }
-        }
-
+        compareDF$group <- ifelse(compareDF[["xp"]] <= pThreshold,
+                                  ifelse(compareDF[["yp"]] <= pThreshold, "Common", "X Unique"),
+                                  ifelse(compareDF[["yp"]] <= pThreshold, "Y Unique", "Not Significant"))
         compareDF$group <- compareDF$group %>%
             factor(levels = levels)
 

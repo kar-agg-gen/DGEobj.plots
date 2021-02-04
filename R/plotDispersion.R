@@ -8,7 +8,7 @@
 #' @param DGEdata Counts matrix or DGEList (Required)
 #' @param designMatrix A design matrix created by stats::model.matrix (Required)
 #' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
-#' @param plotValue One of "dispersion" or "BCV" (Default = "dispersion")
+#' @param plotCategory One of "dispersion" or "BCV" (Default = "dispersion")
 #' @param symbolSize (Default = 1)
 #' @param symbolShape see
 #'   http://www.cookbook-r.com/Graphs/Shapes_and_line_types/ (Default = 1)
@@ -45,7 +45,7 @@
 plotDispersion <- function(DGEdata,
                            designMatrix,
                            plotType = "canvasXpress",
-                           plotValue = "dispersion",
+                           plotCategory = "dispersion",
                            symbolSize = 1,
                            symbolShape = 1,
                            symbolColor = "darkblue",
@@ -60,13 +60,12 @@ plotDispersion <- function(DGEdata,
 
     assertthat::assert_that(!missing(DGEdata),
                             msg = "DGEdata must be specified.")
-    if (!missing(designMatrix)) {
-        assertthat::assert_that("matrix" %in% class(designMatrix),
-                                msg = "designMatrix must be specified and should be of class 'matrix'.")
-    }
+    assertthat::assert_that(!missing(designMatrix),
+                            "matrix" %in% class(designMatrix),
+                            msg = "designMatrix must be specified and should be of class 'matrix'.")
     assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
                             msg = "Plot type must be either ggplot or canvasXpress.")
-    assertthat::assert_that(tolower(plotValue) %in% c("dispersion", "bcv"),
+    assertthat::assert_that(tolower(plotCategory) %in% c("dispersion", "bcv"),
                             msg = "Plot value must be either dispersion or BCV.")
 
     if (class(DGEdata)[[1]] == "DGEList") {
@@ -81,7 +80,7 @@ plotDispersion <- function(DGEdata,
             edgeR::estimateDisp(design = designMatrix, robust = TRUE, ...)
     }
 
-    if (tolower(plotValue) == "dispersion") {
+    if (tolower(plotCategory) == "dispersion") {
         plotdata <- data.frame(AveLogCPM = dgelist$AveLogCPM, Dispersion = dgelist$tagwise.dispersion)
         title <- "EdgeR Dispersion Plot"
         ylab  <- "Dispersion"
@@ -93,8 +92,14 @@ plotDispersion <- function(DGEdata,
 
     if (plotType == "canvasXpress") {
         showLoessFit <- FALSE
+        afterRender <- NULL
         if (!is.null(lineFit)) {
-            showLoessFit <- TRUE
+            lineFit <- cxSupportedLineFit(lineFit)
+            if (lineFit == "lm") {
+                afterRender <- list(list("addRegressionLine"))
+            } else if (lineFit == "loess") {
+                showLoessFit <- TRUE
+            }
         }
         MyDispPlot <- canvasXpress::canvasXpress(data                    = plotdata,
                                                  graphType               = "Scatter2D",
@@ -104,7 +109,8 @@ plotDispersion <- function(DGEdata,
                                                  yAxisTitle              = ylab,
                                                  showLoessFit            = showLoessFit,
                                                  fitLineColor            = linefitColor,
-                                                 fitLineStyle            = lineType)
+                                                 fitLineStyle            = lineType,
+                                                 afterRender             = afterRender)
     } else {
         MyDispPlot <- ggplot(plotdata, aes(x = AveLogCPM, y = Dispersion)) +
             geom_point(size = symbolSize,

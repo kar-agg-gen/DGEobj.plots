@@ -8,7 +8,7 @@ plotDispersion(
   DGEdata,
   designMatrix,
   plotType = "canvasXpress",
-  plotValue = "dispersion",
+  plotCategory = "dispersion",
   symbolSize = 1,
   symbolShape = 1,
   symbolColor = "darkblue",
@@ -29,7 +29,7 @@ plotDispersion(
 
 \item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
 
-\item{plotValue}{One of "dispersion" or "BCV" (Default = "dispersion")}
+\item{plotCategory}{One of "dispersion" or "BCV" (Default = "dispersion")}
 
 \item{symbolSize}{(Default = 1)}
 

@@ -20,22 +20,22 @@ test_that("plotDispersion.R: plotDispersion()", {
     plot_disp <- plotDispersion(DGEdata       = t_obj1$counts,
                                 designMatrix  = designMatrix,
                                 lineFit       = "loess",
-                                plotValue     =  "BCV")
+                                plotCategory  = "BCV")
     expect_s3_class(plot_disp, c("canvasXpress", "htmlwidget"))
 
     plot_disp <- plotDispersion(DGEdata       = t_obj1$counts,
                                 plotType      = "ggplot",
                                 designMatrix  = designMatrix,
                                 lineFit       = "loess",
-                                plotValue     =  "BCV")
+                                plotCategory  = "BCV")
     expect_s3_class(plot_disp, c("gg", "ggplot"))
 
     # testing assert statements
     expect_error(plotDispersion(),
                  regexp = "DGEdata must be specified.")
     expect_error(plotDispersion(DGEdata = t_obj1$counts),
-                 regexp = "argument \"designMatrix\" is missing, with no default")
-    expect_error(plotDispersion(DGEdata = dgelist, designMatrix = designMatrix, plotValue = "cx"),
+                 regexp = "designMatrix must be specified and should be of class 'matrix'.")
+    expect_error(plotDispersion(DGEdata = dgelist, designMatrix = designMatrix, plotCategory = "cx"),
                  regexp = "Plot value must be either dispersion or BCV.")
     expect_error(plotDispersion(DGEdata = dgelist, designMatrix = designMatrix, plotType = "cx"),
                  regexp = "Plot type must be either ggplot or canvasXpress.")

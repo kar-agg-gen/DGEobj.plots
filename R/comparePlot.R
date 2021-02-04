@@ -326,7 +326,7 @@ comparePlot <- function(compareDF,
             CompPlot <- addFootnote(CompPlot,
                                     footnoteText = footnote,
                                     footnoteSize = footnoteSize,
-                                    footnoteColor = "black",
+                                    footnoteColor = footnoteColor,
                                     footnoteJust = footnoteJust,
                                     yoffset = 0.05)
         }

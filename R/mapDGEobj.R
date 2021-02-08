@@ -113,7 +113,6 @@ mapDGEobj <- function(dgeObj, plotType = "canvasXpress", directed = TRUE) {
 
     } else {
         mapDGEplot <- igraph::graph_from_data_frame(d = edges, vertices = nodes, directed = directed)
-
     }
 
     return(mapDGEplot)

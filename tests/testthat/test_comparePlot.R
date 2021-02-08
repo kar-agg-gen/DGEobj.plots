@@ -10,27 +10,36 @@ test_that("comparePlot.R: comparePlot()", {
 
     # Draw the plot
     cPlot <- comparePlot(compareDat)
+    expect_s3_class(cPlot , c("canvasXpress", "htmlwidget"))
+
+    # Draw the plot
+    cPlot <- comparePlot(compareDat, plotType = "ggplot")
     expect_s3_class(cPlot , c("gg", "ggplot"))
 
     # testing function with df without significance measures supplied
     cPlot <- comparePlot(compareDat[,1:2])
+    expect_s3_class(cPlot , c("canvasXpress", "htmlwidget"))
+
+    cPlot <- comparePlot(compareDat[,1:2], plotType = "ggplot")
     expect_s3_class(cPlot , c("gg", "ggplot"))
 
     # testing aesthetics of plots
     cPlot <- comparePlot(compareDat,
+                         plotType = "ggplot",
                          title    = "MyPlot",
                          xlab     = "xaxis-title",
                          ylab     = "yaxis-title",
-                         rugColor = "green",
                          footnote = "This is my footnote")
     expect_setequal(unlist(cPlot$labels[c("title","y", "x")]), c("MyPlot", "yaxis-title", "xaxis-title"))
-    expect_setequal(cPlot$layers[[2]]$aes_params$colour, "green")
+    expect_setequal(cPlot$layers[[2]]$aes_params$colour, "grey50")
 
     # testing assert statement
     expect_error(comparePlot(compareDat[, 1, drop = FALSE]),
                  regexp = "Need at least two numeric columns in compareDF.")
     expect_error(comparePlot(t_obj1$design),
                  regexp = "Need at least two numeric columns in compareDF.")
+    expect_error(comparePlot(compareDat, plotType = "cx"),
+                 regexp = "Plot type must be either ggplot or canvasXpress.")
 
     # failing function with Symbol argument length < 4
     expect_error(comparePlot(compareDat, symbolSize = 1),

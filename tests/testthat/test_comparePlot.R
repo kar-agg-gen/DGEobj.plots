@@ -51,7 +51,7 @@ test_that("comparePlot.R: comparePrep()", {
                  regexp = "The valueCol must be included in the colnames of both items of contrastList.")
     expect_error(comparePrep(contrastList, significanceCol = "P.val"),
                  regexp = "The significanceCol must be included in the colnames of both items of contrastList.")
-    contrastList_uncommon_ids <- list("BMTL" = contrastList$BMTL[1:10,], "BMTH" = contrastList$BMTH[21:30,])
+    contrastList_uncommon_ids <- list("BDL_vs_Sham" = contrastList$BDL_vs_Sham[1:10,], "EXT1024_vs_BDL" = contrastList$EXT1024_vs_BDL[21:30,])
     expect_error(comparePrep(contrastList_uncommon_ids),
                  regexp = "No common gene IDs were found between the two dataframes in contrastList.")
 })

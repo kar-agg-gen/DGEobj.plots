@@ -214,8 +214,97 @@ ggplotMDS <- function(DGEdata,
     if (!is.null(Ylab)) {
         xylab[[2]] <- Ylab
     }
-
+browser()
     if (plotType == "canvasXpress") {
+        color = ColorCode
+        if (byShape == FALSE & bySize == FALSE) {
+            shape = symShape
+            size = symSize
+
+        } else if (byShape == TRUE & bySize == FALSE) {
+            shape = Shape
+            size = symSize
+
+        } else if (byShape == FALSE & bySize == TRUE) {
+            size = Size
+            shape = symShape
+
+        } else if (byShape == TRUE & bySize == TRUE) {
+            shape = Shape
+            size = Size
+
+        }
+
+
+
+        # For discrete color values
+        if (length(unique(colorBy)) <= length(colors)) {
+            mdsplot <- mdsplot +
+                scale_fill_manual(values = colors) +
+                scale_colour_manual(values = colors)
+        }
+
+        # Place an annotation on the bottom left of the plot
+        xrange <- xrange(mdsplot)
+        yrange <- yrange(mdsplot)
+        # Put the annotation 10% from xmin
+        xpos <- xrange[1] + ((xrange[2] - xrange[1]) * 0.1 )
+        alabel <- paste("top ", mds$top, " genes : gene.selection = ",
+                        mds$gene.selection, sep = "")
+        mdsplot <- mdsplot + annotate("text", x = xpos, y = yrange[1],
+                                      label = alabel, hjust = 0,
+                                      size = rel(2.5), color = "grey30")
+
+        # Edit legend titles
+        if (!missing(colorName)) {
+            mdsplot <- mdsplot + labs(color = colorName)
+        }
+        if (!missing(shapeName) && byShape == TRUE) {
+            mdsplot <- mdsplot + labs(shape = shapeName)
+        }
+        if (!missing(sizeName) && bySize == TRUE) {
+            mdsplot <- mdsplot + labs(size = shapeName)
+        }
+
+        if (tolower(themeStyle) %in% c("grey", "gray")) {
+            mdsplot <- mdsplot + theme_grey(baseFontSize)
+        } else {
+            mdsplot <- mdsplot + theme_bw(baseFontSize)
+        }
+
+        reflineColor <- paste(c("rgba(", paste(c(paste(col2rgb(reflineColor, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        decorations <- list()
+        if (!missing(hlineIntercept)) {
+            decorations <- list(line = list(list(color = reflineColor, width = reflineSize, y = hlineIntercept)))
+        }
+
+        if (!missing(vlineIntercept)) {
+            decorations <- list(line = append(decorations$line, list(list(color = reflineColor, width = reflineSize, x = vlineIntercept))))
+        }
+
+        canvasXpress::canvasXpress(data                    = xydat[,c(x,y)],
+                                   varAnnot                = xydat[,"ColorCode",drop=F],
+                                   decorations             = decorations,
+                                   graphType               = "Scatter2D",
+                                   colorBy                 = "Group",
+                                   colors                  = symbolFill,
+                                   legendPosition          = legendPosition,
+                                   showDecorations         = TRUE,
+                                   showLoessFit            = showLoessFit,
+                                   fitLineColor            = lineFitColor,
+                                   sizes                   = c(4, 10, 12, 14, 16, 18, 20, 22, 24, 26),
+                                   sizeByShowLegend        = sizeByShowLegend,
+                                   title                   = title,
+                                   xAxisTitle              = xylab[[1]],
+                                   yAxisTitle              = xylab[[2]],
+                                   sizeBy                  = sizeBy,
+                                   setMaxY                 = foldChangeMargin,
+                                   setMinY                 = -1*foldChangeMargin,
+                                   citation                = footnote,
+                                   citationFontSize        = footnoteSize,
+                                   citationColor           = footnoteColor,
+                                   events                  = events,
+                                   afterRender             = afterRender)
 
     } else {
         if (byShape == FALSE & bySize == FALSE) {

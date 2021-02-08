@@ -149,12 +149,12 @@ cdfPlot <- function(contrastDF,
     # Combo PLOT: full data inset, most significant data in main plot
     # Rank by p-value
     contrastDF <- contrastDF %>%
-        dplyr::arrange(!!sym(pvalCol))
+        dplyr::arrange(!!sym(y))
     contrastDF$Rank <- c(1:nrow(contrastDF))
 
     # Let's plot the p-value subsets
-    Sig <- contrastDF[[pvalCol]] <= pThreshold
-    NotSig <- contrastDF[[pvalCol]] > pThreshold
+    Sig <- contrastDF[[y]] <= pThreshold
+    NotSig <- contrastDF[[y]] > pThreshold
 
     # Create group factor column in contrastDF
     contrastDF$group <- NA
@@ -201,29 +201,29 @@ cdfPlot <- function(contrastDF,
         }
         maxY <- pThreshold + pThreshold*0.2
 
-        cdfMain <- canvasXpress::canvasXpress(data                    = cx.data,
-                                              varAnnot                = var.annot,
-                                              decorations             = decorations,
-                                              graphType               = "Scatter2D",
-                                              colorBy                 = "Group",
-                                              colors                  = symbolFill,
-                                              title                   = title,
-                                              xAxisTitle              = xlab,
-                                              yAxisTitle              = ylab,
-                                              citation                = footnote,
-                                              citationFontSize        = footnoteSize,
-                                              citationColor           = footnoteColor,
-                                              setMaxY                 = maxY)
+        cdfMain <- canvasXpress::canvasXpress(data              = cx.data,
+                                              varAnnot          = var.annot,
+                                              decorations       = decorations,
+                                              graphType         = "Scatter2D",
+                                              colorBy           = "Group",
+                                              colors            = symbolFill,
+                                              title             = title,
+                                              xAxisTitle        = xlab,
+                                              yAxisTitle        = ylab,
+                                              citation          = footnote,
+                                              citationFontSize  = footnoteSize,
+                                              citationColor     = footnoteColor,
+                                              setMaxY           = maxY)
 
-        cdfInset <- canvasXpress::canvasXpress(data                    = cx.data.subset,
-                                               varAnnot                = var.annot.subset,
-                                               graphType               = "Scatter2D",
-                                               colorBy                 = "Group",
-                                               colors                  = symbolFill,
-                                               title                   = insetTitle,
-                                               xAxisTitle              = xlab,
-                                               yAxisTitle              = ylab,
-                                               setMaxY                 = max(contrastDFsubset[[y]]))
+        cdfInset <- canvasXpress::canvasXpress(data             = cx.data.subset,
+                                               varAnnot         = var.annot.subset,
+                                               graphType        = "Scatter2D",
+                                               colorBy          = "Group",
+                                               colors           = symbolFill,
+                                               title            = insetTitle,
+                                               xAxisTitle       = xlab,
+                                               yAxisTitle       = ylab,
+                                               setMaxY          = max(contrastDFsubset[[y]]))
         cdfPlot <- list("main" = cdfMain, "inset" = cdfInset)
     } else {
         names(symbolShape) <- groupNames

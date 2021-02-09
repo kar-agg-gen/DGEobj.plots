@@ -315,7 +315,7 @@ cdfPlot <- function(contrastDF,
                              x = viewportX, y = vy,
                              just = c("left", "top"))
 
-        if (printPlot == TRUE) {
+        if (printPlot) {
             print(cdfMain)
             print(cdfInset, vp = vp)
         }

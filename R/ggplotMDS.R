@@ -289,23 +289,12 @@ browser()
                                    graphType               = "Scatter2D",
                                    colorBy                 = colorby,
                                    colors                  = colors,
-                                   legendPosition          = legendPosition,
+                                   citation                = alabel,
+                                   citationScaleFontFactor = 0.8,
                                    showDecorations         = TRUE,
-                                   showLoessFit            = showLoessFit,
-                                   fitLineColor            = lineFitColor,
-                                   sizes                   = c(4, 10, 12, 14, 16, 18, 20, 22, 24, 26),
-                                   sizeByShowLegend        = sizeByShowLegend,
                                    title                   = title,
                                    xAxisTitle              = xylab[[1]],
-                                   yAxisTitle              = xylab[[2]],
-                                   sizeBy                  = sizeBy,
-                                   setMaxY                 = foldChangeMargin,
-                                   setMinY                 = -1*foldChangeMargin,
-                                   citation                = footnote,
-                                   citationFontSize        = footnoteSize,
-                                   citationColor           = footnoteColor,
-                                   events                  = events,
-                                   afterRender             = afterRender)
+                                   yAxisTitle              = xylab[[2]])
 
     } else {
         if (byShape == FALSE & bySize == FALSE) {

@@ -60,7 +60,9 @@
 #' @importFrom htmlwidgets JS
 #'
 #' @export
-mapDGEobj <- function(dgeObj, plotType = "canvasXpress", directed = TRUE) {
+mapDGEobj <- function(dgeObj,
+                      plotType = "canvasXpress",
+                      directed = TRUE) {
 
     assertthat::assert_that("DGEobj" %in% class(dgeObj),
                             msg = "dgeObj must be of class 'DGEobj'.")

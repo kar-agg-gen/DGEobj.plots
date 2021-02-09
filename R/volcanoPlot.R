@@ -194,7 +194,7 @@ volcanoPlot <- function(contrastDF,
 
         ## Create the canvasXpress cx.data and var.annot
         cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
-                             b = contrastDF[colnames(contrastDF) == y])
+                              b = contrastDF[colnames(contrastDF) == y])
         colnames(cx.data) <- c(x, y)
         var.annot <- data.frame(Group = contrastDF$group, LogInt = contrastDF$LogInt)
         rownames(var.annot) <- rownames(cx.data)
@@ -238,11 +238,10 @@ volcanoPlot <- function(contrastDF,
                                         x     = foldChangeLines),
                                    list(color = symbolFill[which(groupNames == "Decreased")],
                                         width = refLineThickness,
-                                        x     = -1*foldChangeLines)
-                              )))
+                                        x     = -1*foldChangeLines))))
         }
 
-        # Footnote
+        # Assign null if footnote is missing
         if (missing(footnote)) {
             footnote <- NULL
         }
@@ -341,7 +340,6 @@ volcanoPlot <- function(contrastDF,
             ylab(ylab) +
             ggtitle(title)
 
-        # Set the font size before placing the legend
         volcanoPlot <- setLegendPosition(volcanoPlot, legendPosition)
 
         # Footnote

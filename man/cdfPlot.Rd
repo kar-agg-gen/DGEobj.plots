@@ -21,9 +21,8 @@ cdfPlot(
   referenceLine = NULL,
   refLineThickness = 3,
   legendPosition = "right",
-  baseFontSize = 12,
   viewportX = 0.15,
-  viewportY = 0.93,
+  viewportY = 0.85,
   viewportWidth = 0.35,
   pvalMax = 0.1,
   printPlot = TRUE,
@@ -78,12 +77,9 @@ Note: Colors cannot be duplicated.}
 
 \item{legendPosition}{(Default = "right")}
 
-\item{baseFontSize}{The smallest size font in the figure in points. (Default
-= 12)}
-
 \item{viewportX}{(Default = 0.15)}
 
-\item{viewportY}{(Default = 0.93)}
+\item{viewportY}{(Default = 0.85)}
 
 \item{viewportWidth}{(Default = 0.35)}
 

@@ -58,10 +58,8 @@
 #'   (Default = NULL; NULL disables, set to desired color to enable)
 #' @param refLineThickness Set thickness of the reference line (Default = 1)
 #' @param legendPosition (Default = "right")
-#' @param baseFontSize The smallest size font in the figure in points. (Default
-#'   = 12)
 #' @param viewportX (Default = 0.15)
-#' @param viewportY (Default = 0.93)
+#' @param viewportY (Default = 0.85)
 #' @param viewportWidth (Default = 0.35)
 #' @param printPlot Specify printing the combined plot to the console/knitr
 #'   (Default = TRUE)
@@ -101,9 +99,8 @@ cdfPlot <- function(contrastDF,
                     referenceLine = NULL,
                     refLineThickness = 3,
                     legendPosition = "right",
-                    baseFontSize = 12,
                     viewportX = 0.15,
-                    viewportY = 0.93,
+                    viewportY = 0.85,
                     viewportWidth = 0.35,
                     pvalMax = 0.10,
                     printPlot = TRUE,
@@ -182,9 +179,9 @@ cdfPlot <- function(contrastDF,
         var.annot <- data.frame(Group = contrastDF$group)
         rownames(var.annot) <- rownames(cx.data)
 
-        # Inst plot
+        # Inset plot
         cx.data.subset <- data.frame(a = contrastDFsubset[colnames(contrastDFsubset) == x],
-                              b = contrastDFsubset[colnames(contrastDFsubset) == y])
+                                     b = contrastDFsubset[colnames(contrastDFsubset) == y])
         colnames(cx.data.subset) <- c(x, y)
         var.annot.subset <- data.frame(Group = contrastDFsubset$group)
         rownames(var.annot.subset) <- rownames(cx.data.subset)
@@ -299,21 +296,12 @@ cdfPlot <- function(contrastDF,
             ylab(ylab) +
             ggtitle(insetTitle)
 
-        # Adjust font size for inset.
-        factor <- 4/baseFontSize
-        cdfInset <- cdfInset + baseTheme(baseFontSize*factor)
-
-        # Adjust viewport Y if main Title present
-        vy <- viewportY
-        if (!is.null(title)) {
-            adjust <- (baseFontSize/150)
-            vy <- viewportY - adjust
-        }
-
         # A viewport taking up a fraction of the plot area (upper left)
-        vp <- grid::viewport(width = viewportWidth, height = viewportWidth,
-                             x = viewportX, y = vy,
-                             just = c("left", "top"))
+        vp <- grid::viewport(width  = viewportWidth,
+                             height = viewportWidth,
+                             x      = viewportX,
+                             y      = viewportY,
+                             just   = c("left", "top"))
 
         if (printPlot) {
             print(cdfMain)

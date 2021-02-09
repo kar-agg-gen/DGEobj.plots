@@ -11,5 +11,5 @@ test_that('mapDGEobj.R: mapDGEobj()', {
     expect_error(mapDGEobj(obj),
                  regexp = "object 'obj' not found")
     expect_error(mapDGEobj(t_obj1, plotType = "cx"),
-                 regexp = "Plot type must be either ggplot or canvasXpress.")
+                 regexp = "Plot type must be either canvasXpress or ggplot.")
 })

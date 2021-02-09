@@ -64,8 +64,8 @@ mapDGEobj <- function(dgeObj, plotType = "canvasXpress", directed = TRUE) {
 
     assertthat::assert_that("DGEobj" %in% class(dgeObj),
                             msg = "dgeObj must be of class 'DGEobj'.")
-    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
-                            msg = "Plot type must be either ggplot or canvasXpress.")
+    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+                            msg = "Plot type must be either canvasXpress or ggplot.")
 
     child <- names(dgeObj)
     parent <- attr(dgeObj, "parent") %>% as.character()

@@ -63,8 +63,8 @@ plotDispersion <- function(DGEdata,
     assertthat::assert_that(!missing(designMatrix),
                             "matrix" %in% class(designMatrix),
                             msg = "designMatrix must be specified and should be of class 'matrix'.")
-    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
-                            msg = "Plot type must be either ggplot or canvasXpress.")
+    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+                            msg = "Plot type must be either canvasXpress or ggplot.")
     assertthat::assert_that(tolower(plotCategory) %in% c("dispersion", "bcv"),
                             msg = "Plot value must be either dispersion or BCV.")
 
@@ -101,6 +101,7 @@ plotDispersion <- function(DGEdata,
                 showLoessFit <- TRUE
             }
         }
+
         MyDispPlot <- canvasXpress::canvasXpress(data                    = plotdata,
                                                  graphType               = "Scatter2D",
                                                  colors                  = symbolColor,

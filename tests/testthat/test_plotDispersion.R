@@ -38,5 +38,5 @@ test_that("plotDispersion.R: plotDispersion()", {
     expect_error(plotDispersion(DGEdata = dgelist, designMatrix = designMatrix, plotCategory = "cx"),
                  regexp = "Plot value must be either dispersion or BCV.")
     expect_error(plotDispersion(DGEdata = dgelist, designMatrix = designMatrix, plotType = "cx"),
-                 regexp = "Plot type must be either ggplot or canvasXpress.")
+                 regexp = "Plot type must be either canvasXpress or ggplot.")
 })

@@ -89,6 +89,7 @@ plotDispersion <- function(DGEdata,
         title <- "EdgeR BCV Plot"
         ylab  <- "BCV"
     }
+    rownames(plotdata) <- rownames(dgelist$counts)
 
     if (plotType == "canvasXpress") {
         showLoessFit <- FALSE
@@ -100,6 +101,10 @@ plotDispersion <- function(DGEdata,
             } else if (lineFit == "loess") {
                 showLoessFit <- TRUE
             }
+        }
+
+        if (tolower(plotCategory) == "bcv") {
+            colnames(plotdata) <- c("AveLogCPM", "BCV")
         }
 
         MyDispPlot <- canvasXpress::canvasXpress(data                    = plotdata,

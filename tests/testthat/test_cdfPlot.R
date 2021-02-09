@@ -54,5 +54,5 @@ test_that("cdfPlot.R: cdfPlot()", {
     expect_error({cdfPlot(top_table, symbolShape = 20)},
                  regexp = "All specified symbol arguments must be of length 2, including symbolSize, symbolShape, symbolColor, and symbolFill.")
     expect_error({cdfPlot(top_table, plotType = "cx")},
-                 regexp = "Plot type must be either ggplot or canvasXpress.")
+                 regexp = "Plot type must be either canvasXpress or ggplot.")
 })

@@ -89,8 +89,10 @@ cdfPlot <- function(contrastDF,
                     plotType = "canvasXpress",
                     pvalCol = "P.Value",
                     pThreshold = 0.01,
-                    xlab = NULL, ylab = NULL,
-                    title = NULL, insetTitle = NULL,
+                    xlab = NULL,
+                    ylab = NULL,
+                    title = NULL,
+                    insetTitle = NULL,
                     symbolSize = c(2, 1),
                     symbolShape = c(20, 20),
                     symbolColor = c("red3", "deepskyblue4"),
@@ -108,13 +110,12 @@ cdfPlot <- function(contrastDF,
                     footnote,
                     footnoteSize = 3,
                     footnoteColor = "black",
-                    footnoteJust = 1
-) {
+                    footnoteJust = 1) {
 
     assertthat::assert_that(pvalCol %in% colnames(contrastDF),
                             msg = "Specified pvalCol not found in the supplied dataframe (contrastDF).")
-    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
-                            msg = "Plot type must be either ggplot or canvasXpress.")
+    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+                            msg = "Plot type must be either canvasXpress or ggplot.")
 
     if (!missing(symbolSize) || !missing(symbolShape) || !missing(symbolColor) || !missing(symbolFill)) {
         assertthat::assert_that(!length(symbolSize) == 2,
@@ -125,8 +126,7 @@ cdfPlot <- function(contrastDF,
     }
 
     groupNames <- c("Significant", "Not Significant")
-    # Columns to plot
-    # Capture the labels from the colname
+    # Storing column names in x and y variable
     x <- "Rank"
     y <- pvalCol
 
@@ -164,7 +164,7 @@ cdfPlot <- function(contrastDF,
     contrastDF$group <- contrastDF$group %>%
         factor(levels = groupNames)
 
-    # Set an order field to force plotting of NotSig first
+    # Set an order field to force plotting of 'not significant' first
     contrastDF$order <- NA
     contrastDF$order[NotSig] <- 1
     contrastDF$order[Sig] <- 2
@@ -174,7 +174,7 @@ cdfPlot <- function(contrastDF,
     contrastDFsubset <- contrastDF[1:subsetRows,]
 
     if (plotType == "canvasXpress") {
-        ## Create the canvasXpress df and var annotation
+        ## Create the canvasXpress cx.data and var.annot
         # Main plot
         cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
                               b = contrastDF[colnames(contrastDF) == y])
@@ -293,7 +293,7 @@ cdfPlot <- function(contrastDF,
                       fill = "lightblue", alpha = 0.2) +
             geom_point(alpha = alpha)
 
-        # Add Labels
+        # Add Labels and title
         cdfInset <- cdfInset +
             xlab(xlab) +
             ylab(ylab) +

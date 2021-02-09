@@ -31,7 +31,8 @@ Imports:
     stringr,
     utils,
     edgeR,
-    limma  (>= 3.38)
+    limma  (>= 3.38),
+    htmlwidgets
 Suggests:
     knitr,
     rmarkdown,

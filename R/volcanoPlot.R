@@ -127,15 +127,15 @@ volcanoPlot <- function(contrastDF,
                         footnoteColor = "black",
                         footnoteJust = 1) {
 
-    # Make sure specified columns exist
+    # Assert the parameter and column exists
     assertthat::assert_that(logRatioCol %in% colnames(contrastDF),
                             msg = "logRatioCol column not found in contrastDF.")
     assertthat::assert_that(logIntCol %in% colnames(contrastDF),
                             msg = "logIntCol column not found in contrastDF.")
     assertthat::assert_that(pvalCol %in% colnames(contrastDF),
                             msg = "pvalCol column not found in contrastDF.")
-    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
-                            msg = "Plot type must be either ggplot or canvasXpress.")
+    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+                            msg = "Plot type must be either canvasXpress or ggplot.")
     if (!missing(geneSymCol)) {
         assertthat::assert_that(geneSymCol %in% colnames(contrastDF),
                                 msg = "geneSymol column not found in contrastDF.")
@@ -148,7 +148,7 @@ volcanoPlot <- function(contrastDF,
                                 msg = "All specified symbol arguments must be of length 3, including symbolSize, symbolShape, symbolColor, and symbolFill.")
     }
 
-    if (sizeByIntensity == TRUE) {
+    if (sizeByIntensity) {
         # Create a column to support sizeByIntensity
         contrastDF$LogInt <- contrastDF[[logIntCol]]
         # Set a floor and a ceiling
@@ -158,7 +158,7 @@ volcanoPlot <- function(contrastDF,
 
     groupNames <- c("Increased", "Decreased", "No Change")
 
-    # Capture the labels from the colname
+    # Capture the labels from the columns
     if (is.null(xlab)) {
         xlab <- logRatioCol
     }
@@ -171,10 +171,9 @@ volcanoPlot <- function(contrastDF,
         title <- ""
     }
 
-    # Now make the columnames suitable for use with aes_string
     x <- make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
     colnames(contrastDF)[colnames(contrastDF) == logRatioCol] <- make.names(colnames(contrastDF)[colnames(contrastDF) == logRatioCol])
-    # Make a log10significance column and make that the y column
+    # Add NegativeLogP column
     contrastDF$NegativeLogP <- -1*log10(contrastDF[,pvalCol])
     y <- "NegativeLogP"
 
@@ -185,17 +184,13 @@ volcanoPlot <- function(contrastDF,
     contrastDF$group <- contrastDF$group %>%
         factor(levels = c("Increased", "Decreased", "No Change"))
 
-    # Set an order field to force plotting of NoChange first
-    contrastDF$order <- 0
-    contrastDF$order[contrastDF$group %in% c("Increased", "Decreased")] <- 1
-
     # plotType
     if (plotType == "canvasXpress") {
         symbolFill[1] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[1], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
         symbolFill[2] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[2], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
         symbolFill[3] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[3], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
 
-        ## Create the canvasXpress df and var annotation
+        ## Create the canvasXpress cx.data and var.annot
         cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
                              b = contrastDF[colnames(contrastDF) == y])
         colnames(cx.data) <- c(x, y)
@@ -203,6 +198,7 @@ volcanoPlot <- function(contrastDF,
         rownames(var.annot) <- rownames(cx.data)
         events <- NULL
 
+        # Add geneSym labels in tooltips
         if (!missing(geneSymCol)) {
             var.annot <- cbind(var.annot, GeneLabel = contrastDF[[geneSymCol]])
             events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
@@ -223,7 +219,7 @@ volcanoPlot <- function(contrastDF,
         sizeByShowLegend <- FALSE
         decorations <- list()
 
-        if (sizeByIntensity == TRUE) {
+        if (sizeByIntensity) {
             sizeBy <- "LogInt"
             sizeByShowLegend <- TRUE
         }
@@ -233,13 +229,15 @@ volcanoPlot <- function(contrastDF,
         }
 
         if (!is.null(foldChangeLines)) {
-            decorations <- list(line = append(decorations$line, list(list(color = symbolFill[which(groupNames == "Increased")],
-                                                                          width = refLineThickness,
-                                                                          x     = foldChangeLines),
-                                                                     list(color = symbolFill[which(groupNames == "Decreased")],
-                                                                          width = refLineThickness,
-                                                                          x     = -1*foldChangeLines)
-            )))
+            decorations <- list(
+                line = append(decorations$line,
+                              list(list(color = symbolFill[which(groupNames == "Increased")],
+                                        width = refLineThickness,
+                                        x     = foldChangeLines),
+                                   list(color = symbolFill[which(groupNames == "Decreased")],
+                                        width = refLineThickness,
+                                        x     = -1*foldChangeLines)
+                              )))
         }
 
         # Footnote
@@ -255,6 +253,7 @@ volcanoPlot <- function(contrastDF,
                                                   colorBy                 = "Group",
                                                   colors                  = symbolFill,
                                                   legendPosition          = legendPosition,
+                                                  legendOrder             = list("Group" = c("No Change", "Increased", "Decreased")),
                                                   showDecorations         = TRUE,
                                                   sizes                   = c(4, 10, 12, 14, 16, 18, 20, 22, 24, 26),
                                                   sizeByShowLegend        = sizeByShowLegend,
@@ -281,6 +280,10 @@ volcanoPlot <- function(contrastDF,
                           symbolFill = symbolFill,
                           stringsAsFactors = FALSE)
 
+        # Set an order field to force plotting of 'No Change' first
+        contrastDF$order <- 0
+        contrastDF$order[contrastDF$group %in% c("Increased", "Decreased")] <- 1
+
         contrastDF <- contrastDF %>%
             dplyr::left_join(ssc)
 
@@ -302,7 +305,7 @@ volcanoPlot <- function(contrastDF,
             theme(legend.background = element_rect(fill = "gray95", size = .5, linetype = "dotted"))
 
         # Optional Decorations
-        if (sizeByIntensity == TRUE) {
+        if (sizeByIntensity) {
             volcanoPlot <- volcanoPlot + aes(size = LogInt) +
                 scale_size_continuous()
         }

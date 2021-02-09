@@ -46,6 +46,6 @@ test_that("volcanoPlot.R: volcanoPlot()", {
     expect_error(volcanoPlot(contrastDF, logRatioCol = "adj.P.Val", symbolSize = 2),
                  regexp = "All specified symbol arguments must be of length 3, including symbolSize, symbolShape, symbolColor, and symbolFill.")
     expect_error(volcanoPlot(contrastDF, logRatioCol = "adj.P.Val", plotType = "cx"),
-                 regexp =  "Plot type must be either ggplot or canvasXpress.")
+                 regexp =  "Plot type must be either canvasXpress or ggplot.")
 
 })

@@ -118,8 +118,8 @@ ggplotMDS <- function(DGEdata,
 
     assertthat::assert_that(class(DGEdata) %in% c("DGEobj", "DGEList", "matrix"),
                             msg = "DGEdata must be of class 'DGEList', 'DGEobj', or 'matrix'.")
-    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
-                            msg = "Plot type must be either ggplot or canvasXpress.")
+    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+                            msg = "Plot type must be either canvasXpress or ggplot.")
 
     if ("DGEobj" %in% class(DGEdata)) {
         DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
@@ -216,7 +216,8 @@ ggplotMDS <- function(DGEdata,
     }
 browser()
     if (plotType == "canvasXpress") {
-        color = ColorCode
+        colorby = "ColorCode"
+        colors = lapply(colors, function(x){paste(c("rgba(", paste(c(paste(col2rgb(x, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")})
         if (byShape == FALSE & bySize == FALSE) {
             shape = symShape
             size = symSize
@@ -255,22 +256,22 @@ browser()
                                       label = alabel, hjust = 0,
                                       size = rel(2.5), color = "grey30")
 
-        # Edit legend titles
-        if (!missing(colorName)) {
-            mdsplot <- mdsplot + labs(color = colorName)
-        }
-        if (!missing(shapeName) && byShape == TRUE) {
-            mdsplot <- mdsplot + labs(shape = shapeName)
-        }
-        if (!missing(sizeName) && bySize == TRUE) {
-            mdsplot <- mdsplot + labs(size = shapeName)
-        }
-
-        if (tolower(themeStyle) %in% c("grey", "gray")) {
-            mdsplot <- mdsplot + theme_grey(baseFontSize)
-        } else {
-            mdsplot <- mdsplot + theme_bw(baseFontSize)
-        }
+        # # Edit legend titles
+        # if (!missing(colorName)) {
+        #     mdsplot <- mdsplot + labs(color = colorName)
+        # }
+        # if (!missing(shapeName) && byShape == TRUE) {
+        #     mdsplot <- mdsplot + labs(shape = shapeName)
+        # }
+        # if (!missing(sizeName) && bySize == TRUE) {
+        #     mdsplot <- mdsplot + labs(size = shapeName)
+        # }
+        #
+        # if (tolower(themeStyle) %in% c("grey", "gray")) {
+        #     mdsplot <- mdsplot + theme_grey(baseFontSize)
+        # } else {
+        #     mdsplot <- mdsplot + theme_bw(baseFontSize)
+        # }
 
         reflineColor <- paste(c("rgba(", paste(c(paste(col2rgb(reflineColor, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
         decorations <- list()
@@ -281,13 +282,13 @@ browser()
         if (!missing(vlineIntercept)) {
             decorations <- list(line = append(decorations$line, list(list(color = reflineColor, width = reflineSize, x = vlineIntercept))))
         }
-
-        canvasXpress::canvasXpress(data                    = xydat[,c(x,y)],
+browser()
+        canvasXpress::canvasXpress(data                    = xydat[,c("x","y")],
                                    varAnnot                = xydat[,"ColorCode",drop=F],
                                    decorations             = decorations,
                                    graphType               = "Scatter2D",
-                                   colorBy                 = "Group",
-                                   colors                  = symbolFill,
+                                   colorBy                 = colorby,
+                                   colors                  = colors,
                                    legendPosition          = legendPosition,
                                    showDecorations         = TRUE,
                                    showLoessFit            = showLoessFit,

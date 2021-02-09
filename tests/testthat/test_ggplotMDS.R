@@ -58,6 +58,14 @@ test_that("ggplotMDS.R: ggplotMDS()", {
                            colorBy = t_obj1$design$Barcode,
                            sizeBy  = 1:10),
                  regexp = "sizeBy should be the length of the number of columns in DGEdata.")
+    expect_error(ggplotMDS(DGEdata = t_obj1,
+                           colorBy = t_obj1$design$Species,
+                           sizeBy  = 1:10),
+                 regexp = "sizeBy should be the length of the number of columns in DGEdata.")
+    expect_error(ggplotMDS(DGEdata  = t_obj1,
+                           plotType = "cx",
+                           colorBy  = t_obj1$design$organism),
+                 regexp = "Plot type must be either canvasXpress or ggplot.")
 })
 
 test_that("ggplotMDS.R: MDS_var_explained()", {

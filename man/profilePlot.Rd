@@ -6,31 +6,28 @@
 \usage{
 profilePlot(
   contrastDF,
+  plotType = "canvasXpress",
   logRatioCol = "logFC",
   logIntCol = "AveExpr",
   pvalCol = "P.Value",
   pthreshold = 0.01,
   geneSymLabels,
   geneSymCol,
-  rugColor = NULL,
-  rugAlpha = 1,
   xlab = NULL,
   ylab = NULL,
   title = NULL,
   symbolSize = c(4, 1, 4),
   symbolShape = c(21, 20, 21),
-  symbolColor = c("black", "grey25", "grey0"),
-  symbolFill = c("red3", "grey25", "deepskyblue4"),
+  symbolColor = c("black", "grey0", "grey25"),
+  symbolFill = c("red3", "deepskyblue4", "grey25"),
   alpha = 0.5,
   sizeBySignificance = FALSE,
   referenceLine = "grey25",
   foldChangeLines = log2(1.5),
   refLineThickness = 1,
   lineFitType = "loess",
-  lineFitColor = "goldenrod1",
+  lineFitColor = "yellow",
   legendPosition = "right",
-  baseFontSize = 12,
-  themeStyle = "grey",
   footnote,
   footnoteSize = 3,
   footnoteColor = "black",
@@ -39,6 +36,8 @@ profilePlot(
 }
 \arguments{
 \item{contrastDF}{Dataframe with LogIntensity and LogRatio columns and optionally a p-value or FDR column.}
+
+\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
 
 \item{logRatioCol}{Name of the LogRatio column (Default = "logFC")}
 
@@ -54,12 +53,6 @@ profilePlot(
 not in topTable output by default so the user has to bind this column
 to the dataframe in advance.  Then this column will be used to label
 significantly changed points.}
-
-\item{rugColor}{Specify color for rug density plot along x and y axes. Set to NULL
-to disable rug layer. (Default = NULL)}
-
-\item{rugAlpha}{Sets the transparency for the rug layer.  An alpha < 1.0 can take awhile to draw,
-thus the default of 1.0, but for a final plot try 0.1 or 0.2 for alpha for more informative rug.}
 
 \item{xlab}{X axis label (Defaults to the LogIntensity column name)}
 
@@ -108,11 +101,6 @@ Significance measure (Default = FALSE)}
 top/bottom/left/right place the legend outside the figure.  ne/se/nw/sw place the figure
 inside the figure. NULL disables the legend. Default = "right"}
 
-\item{baseFontSize}{The smallest size font in the figure in points. Default = 12.}
-
-\item{themeStyle}{"bw" or "grey" which correspond to theme_bw or theme_grey respectively.
-Default = bw"}
-
 \item{footnote}{Optional string placed right justified at bottom of plot.}
 
 \item{footnoteSize}{Applies to footnote. (Default = 3)}
@@ -122,7 +110,7 @@ Default = bw"}
 \item{footnoteJust}{Value 0-1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)}
 }
 \value{
-ggplot object
+canvasxpress or ggplot object based on plotType selection
 }
 \description{
 A profile plot shows Log Intensity on the X axis and Log Ratio on the Y axis.
@@ -138,12 +126,6 @@ supplied LogRatio threshold. A Loess line fit is drawn through the actual
 data. The points are color coded using the significance measure (p-value or
 FDR threshold) supplied by the user. By default, the P.Value field is used
 with a threshold of 0.01 to color code the points.
-
-The profilePlot has also been implemented
-with a scalable theme that makes it easy to scale font sizes larger
-or smaller for PPT or knitr output.  Add baseFont(n),
-where n equals the base font size (12 works well for knitr, 18 or 24 works well
-for PPT).  e.g. myPlot + theme_grey(18).
 
 \strong{Data Structure for the input dataframe:}
 
@@ -176,7 +158,7 @@ Increased, NoChange, Decreased.
                          xlab = "Log2Intensity", ylab = "Log2Ratio",
                          title = "Profile Plot Title",
                          referenceLine = "blue",
-                         legendPosition = "ne")
+                         legendPosition = "right")
 }
 
 }

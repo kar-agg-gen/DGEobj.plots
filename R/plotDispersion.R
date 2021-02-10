@@ -7,7 +7,8 @@
 #'
 #' @param DGEdata Counts matrix or DGEList (Required)
 #' @param designMatrix A design matrix created by stats::model.matrix (Required)
-#' @param plotType One of "dispersion" or "BCV" (Default = "dispersion")
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
+#' @param plotCategory One of "dispersion" or "BCV" (Default = "dispersion")
 #' @param symbolSize (Default = 1)
 #' @param symbolShape see
 #'   http://www.cookbook-r.com/Graphs/Shapes_and_line_types/ (Default = 1)
@@ -19,27 +20,32 @@
 #' @param linefitColor (Default = "yellow")
 #' @param lineFit (Default = NULL) Any type supported by geom_smooth (Loess is
 #'   recommended).
-#' @param lineType Any ggplot2 lineType supported by geom_smooth (Default = 1, solid)
+#' @param lineType Any ggplot2 lineType supported by geom_smooth (Default = solid)
 #' @param lineAlpha Alpha desired for geom_smooth line (Default = 1)
-#' @param rugColor (Default = NULL)  Set to Null to disable rug plots.
-#' @param rugAlpha Transparency for the rug plots (Default = 0.02)
 #' @param ... Extra parameters to pass to edgeR::estimateDisp
 #'
-#' @return A ggplot object
+#' @return canvasxpress or ggplot object based on plotType selection
 #'
 #' @examples
 #' \dontrun{
-#'    myGgplot <- plotDispersion(myDGElist)
-#'    myGgplot <- plotDispersion(myDGEobj)
+#'    # canvasxpress plot
+#'    myCxplot <- plotDispersion(myDGElist)
+#'    myCxplot <- plotDispersion(myDGEobj)
+#'
+#'    # ggplot
+#'    myGgplot <- plotDispersion(myDGElist, plotType = "ggplot")
+#'    myGgplot <- plotDispersion(myDGEobj, plotType = "ggplot")
 #' }
 #'
 #' @importFrom assertthat assert_that
 #' @importFrom edgeR calcNormFactors estimateDisp DGEList
+#' @importFrom canvasXpress canvasXpress
 #'
 #' @export
 plotDispersion <- function(DGEdata,
                            designMatrix,
-                           plotType = "dispersion",
+                           plotType = "canvasXpress",
+                           plotCategory = "dispersion",
                            symbolSize = 1,
                            symbolShape = 1,
                            symbolColor = "darkblue",
@@ -48,18 +54,19 @@ plotDispersion <- function(DGEdata,
                            linefitSize = 1,
                            linefitColor = "yellow",
                            lineFit = NULL,
-                           lineType = 1,
+                           lineType = "solid",
                            lineAlpha = 1,
-                           rugColor = NULL,
-                           rugAlpha = 0.02,
                            ...) {
 
     assertthat::assert_that(!missing(DGEdata),
                             msg = "DGEdata must be specified.")
-    if (!missing(designMatrix)) {
-        assertthat::assert_that("matrix" %in% class(designMatrix),
-                                msg = "designMatrix must be specified and should be of class 'matrix'.")
-    }
+    assertthat::assert_that(!missing(designMatrix),
+                            "matrix" %in% class(designMatrix),
+                            msg = "designMatrix must be specified and should be of class 'matrix'.")
+    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+                            msg = "Plot type must be either canvasXpress or ggplot.")
+    assertthat::assert_that(tolower(plotCategory) %in% c("dispersion", "bcv"),
+                            msg = "Plot value must be either dispersion or BCV.")
 
     if (class(DGEdata)[[1]] == "DGEList") {
         dgelist <- DGEdata %>%
@@ -73,46 +80,64 @@ plotDispersion <- function(DGEdata,
             edgeR::estimateDisp(design = designMatrix, robust = TRUE, ...)
     }
 
-    if (tolower(plotType == "dispersion")) {
+    if (tolower(plotCategory) == "dispersion") {
         plotdata <- data.frame(AveLogCPM = dgelist$AveLogCPM, Dispersion = dgelist$tagwise.dispersion)
+        title <- "EdgeR Dispersion Plot"
+        ylab  <- "Dispersion"
     } else {
         plotdata <- data.frame(AveLogCPM = dgelist$AveLogCPM, Dispersion = sqrt(dgelist$tagwise.dispersion))
+        title <- "EdgeR BCV Plot"
+        ylab  <- "BCV"
     }
+    rownames(plotdata) <- rownames(dgelist$counts)
 
-    MyDispPlot <- ggplot(plotdata, aes(x = AveLogCPM, y = Dispersion)) +
-        geom_point(size = symbolSize,
-                   shape = symbolShape,
-                   fill = symbolFill,
-                   color = symbolColor,
-                   alpha = symbolAlpha)
+    if (plotType == "canvasXpress") {
+        showLoessFit <- FALSE
+        afterRender <- NULL
+        if (!is.null(lineFit)) {
+            lineFit <- cxSupportedLineFit(lineFit)
+            if (lineFit == "lm") {
+                afterRender <- list(list("addRegressionLine"))
+            } else if (lineFit == "loess") {
+                showLoessFit <- TRUE
+            }
+        }
 
-    if (!is.null(lineFit)) {
+        if (tolower(plotCategory) == "bcv") {
+            colnames(plotdata) <- c("AveLogCPM", "BCV")
+        }
+
+        MyDispPlot <- canvasXpress::canvasXpress(data                    = plotdata,
+                                                 graphType               = "Scatter2D",
+                                                 colors                  = symbolColor,
+                                                 sizes                   = symbolSize,
+                                                 title                   = title,
+                                                 yAxisTitle              = ylab,
+                                                 showLoessFit            = showLoessFit,
+                                                 fitLineColor            = linefitColor,
+                                                 fitLineStyle            = lineType,
+                                                 afterRender             = afterRender)
+    } else {
+        MyDispPlot <- ggplot(plotdata, aes(x = AveLogCPM, y = Dispersion)) +
+            geom_point(size = symbolSize,
+                       shape = symbolShape,
+                       fill = symbolFill,
+                       color = symbolColor,
+                       alpha = symbolAlpha)
+
+        if (!is.null(lineFit)) {
+            MyDispPlot <- MyDispPlot +
+                geom_smooth(method = lineFit,
+                            size = linefitSize,
+                            color = linefitColor,
+                            linetype = lineType,
+                            alpha = lineAlpha)
+        }
+
         MyDispPlot <- MyDispPlot +
-            geom_smooth(method = lineFit,
-                        size = linefitSize,
-                        color = linefitColor,
-                        linetype = lineType,
-                        alpha = lineAlpha)
-    }
-
-    if (!is.null(rugColor)) {
-        MyDispPlot <- MyDispPlot + geom_rug(data = plotdata,
-                                            inherit.aes = FALSE,
-                                            color = rugColor,
-                                            alpha = rugAlpha,
-                                            show.legend = FALSE,
-                                            aes(x = AveLogCPM, y = Dispersion))
-    }
-
-    MyDispPlot <- MyDispPlot +
-        ggtitle("EdgeR Dispersion Plot") +
-        expand_limits(x = 0, y = 0) +
-        theme_grey()
-
-    if (tolower(plotType) == "bcv") {
-        MyDispPlot <- MyDispPlot +
-            ylab("BCV") +
-            ggtitle("EdgeR BCV Plot")
+            ylab(ylab) +
+            ggtitle(title) +
+            expand_limits(x = 0, y = 0)
     }
 
     return(MyDispPlot)

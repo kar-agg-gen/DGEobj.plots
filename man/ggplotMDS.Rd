@@ -2,10 +2,11 @@
 % Please edit documentation in R/ggplotMDS.R
 \name{ggplotMDS}
 \alias{ggplotMDS}
-\title{Create limma MDS plot using ggplot2}
+\title{Create limma MDS plot}
 \usage{
 ggplotMDS(
   DGEdata,
+  plotType = "canvasXpress",
   colorBy,
   shapeBy,
   sizeBy,
@@ -13,29 +14,23 @@ ggplotMDS(
   labels,
   labelSize,
   title,
-  textColor = "blue2",
   hlineIntercept,
   vlineIntercept,
   reflineColor = "darkgoldenrod1",
   reflineSize = 0.5,
-  baseFontSize = 12,
-  themeStyle = "grey",
   symShape = 16,
   symSize = 5,
-  symFill = "blue2",
-  symColor = "blue2",
   alpha = 0.7,
   shapes,
   colors,
-  dim.plot = c(1, 2),
-  colorName,
-  shapeName,
-  sizeName
+  dim.plot = c(1, 2)
 )
 }
 \arguments{
 \item{DGEdata}{A DGEList object taken after normalization
 OR a DGEobj that contains a DGEList OR a log2cpm matrix. (Required)}
+
+\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
 
 \item{colorBy}{A grouping vector to color by (e.g. ReplicateGroup) (Required)}
 
@@ -54,8 +49,6 @@ text labels.}
 
 \item{title}{A title for the plot. (Optional)}
 
-\item{textColor}{Color for the text labels in the plot (Default = "blue2")}
-
 \item{hlineIntercept}{Y intercept of horizontal line (Optional)}
 
 \item{vlineIntercept}{X intercept of vertical line (Optional)}
@@ -65,19 +58,10 @@ text labels.}
 
 \item{reflineSize}{Thickness of the reference lines (Default = 0.5)}
 
-\item{baseFontSize}{Base font size for the plot (Default = 12)}
-
-\item{themeStyle}{One of "grey" or "bw" (Default = "grey")}
-
 \item{symShape}{Set the default shape of the symbols if not mapped to a column (Default = 19, solid circle)}
 
 \item{symSize}{Set the default size of the symbols if not mapped to a column
 (Default = 5)}
-
-\item{symFill}{Set color for the fill on open symbols (Default = "blue2")}
-
-\item{symColor}{Set color for solid symbols or outline for open symbols
-(Default = "blue2")}
 
 \item{alpha}{Set transparency (Default = 0.7)}
 
@@ -86,12 +70,6 @@ text labels.}
 \item{colors}{A color pallet to substitute for the default 8 color pallet used by colorBy (optional)}
 
 \item{dim.plot}{Define which dimension to plot (Default = c(1,2))}
-
-\item{colorName}{Legend title for color (optional)}
-
-\item{shapeName}{Legend title for shape (optional)}
-
-\item{sizeName}{Legend title for size (optional)}
 }
 \value{
 A list with two elements, the ggplot object and the MDS object returned
@@ -99,7 +77,7 @@ A list with two elements, the ggplot object and the MDS object returned
 }
 \description{
 This is a wrapper around the plotMDS function that generates the plot with
-ggplot2 instead of base graphics.
+canvasXpress or ggplot2 instead of base graphics.
 }
 \details{
 colorBy, shapeBy, and sizeBy are grouping variables that encode group info by

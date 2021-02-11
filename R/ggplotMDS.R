@@ -29,27 +29,18 @@
 #'   text labels.
 #' @param labelSize Control size for the text labels in the plot,
 #' @param title A title for the plot. (Optional)
-#' @param textColor Color for the text labels in the plot (Default = "blue2")
 #' @param vlineIntercept X intercept of vertical line (Optional)
 #' @param hlineIntercept Y intercept of horizontal line (Optional)
 #' @param reflineColor Color for the horizontal and vertical reference lines
 #'   (Default = "darkgoldenrod1")
 #' @param reflineSize Thickness of the reference lines (Default = 0.5)
-#' @param baseFontSize Base font size for the plot (Default = 12)
-#' @param themeStyle One of "grey" or "bw" (Default = "grey")
 #' @param symShape Set the default shape of the symbols if not mapped to a column (Default = 19, solid circle)
 #' @param symSize Set the default size of the symbols if not mapped to a column
 #'   (Default = 5)
-#' @param symFill Set color for the fill on open symbols (Default = "blue2")
-#' @param symColor Set color for solid symbols or outline for open symbols
-#'   (Default = "blue2")
 #' @param alpha Set transparency (Default = 0.7)
 #' @param shapes A vector of shapes to override the default 8 shapes used in shapeBy (optional)
 #' @param colors A color pallet to substitute for the default 8 color pallet used by colorBy (optional)
 #' @param dim.plot Define which dimension to plot (Default = c(1,2))
-#' @param shapeName Legend title for shape (optional)
-#' @param colorName Legend title for color (optional)
-#' @param sizeName Legend title for size (optional)
 #'
 #' @return A list with two elements, the ggplot object and the MDS object returned
 #'    by the plotMDS() function.
@@ -80,17 +71,12 @@ ggplotMDS <- function(DGEdata,
                       labels,
                       labelSize,
                       title,
-                      textColor = "blue2",
                       hlineIntercept,
                       vlineIntercept,
                       reflineColor = "darkgoldenrod1",
                       reflineSize = 0.5,
-                      baseFontSize = 12,
-                      themeStyle = "grey",
                       symShape = 16,
                       symSize = 5,
-                      symFill = "blue2",
-                      symColor = "blue2",
                       alpha = 0.7,
                       shapes,
                       colors,
@@ -118,8 +104,8 @@ ggplotMDS <- function(DGEdata,
 
     assertthat::assert_that(class(DGEdata) %in% c("DGEobj", "DGEList", "matrix"),
                             msg = "DGEdata must be of class 'DGEList', 'DGEobj', or 'matrix'.")
-    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
-                            msg = "Plot type must be either canvasXpress or ggplot.")
+    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
+                            msg = "Plot type must be either ggplot or canvasXpress.")
 
     if ("DGEobj" %in% class(DGEdata)) {
         DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
@@ -137,12 +123,6 @@ ggplotMDS <- function(DGEdata,
                                 msg = "sizeBy should be the length of the number of columns in DGEdata.")
     }
 
-    # Shapes: solid circle, square, triangle, diamond, open circle, square, triangle, diamond
-    myShapes = c(16, 15, 17, 18, 21, 22, 24, 23)
-    if (missing(shapes)) {
-        shapes <- myShapes
-    }
-
     # ColorBlind palette:
     # http://www.ucl.ac.uk/~zctpep9/Archived%20webpages/Cookbook%20for%20R%20%C2%BB%20Colors%20(ggplot2).htm
     cbbPalette <- c("#56B4E9", "#009E73", "#0072B2", "#D55E00", "#CC79A7", "#E69F00",  "#F0E442", "#000000")
@@ -150,27 +130,6 @@ ggplotMDS <- function(DGEdata,
         colors <- cbbPalette
     }
 
-    if (!exists("gene.selection")) {
-        gene.selection <- "pairwise"
-    }
-    if (!exists("Xlab")) {
-        Xlab <- NULL
-    }
-    if (!exists("Ylab")) {
-        Ylab <- NULL
-    }
-    if (!exists("pch")) {
-        pch <- NULL
-    }
-    if (!exists("cex")) {
-        cex <- 1
-    }
-    if (!exists("method")) {
-        method <- "logFC"
-    }
-    if (!exists("prior.count")) {
-        prior.count <- 2
-    }
     if (missing(labels)) {
         labels <- colnames(DGEdata)
     }
@@ -180,12 +139,8 @@ ggplotMDS <- function(DGEdata,
 
     mds <- limma::plotMDS(DGEdata,
                           top = top,
-                          pch = pch,
-                          cex = cex,
                           dim.plot = dim.plot,
                           ndim = max(dim.plot),
-                          gene.selection = gene.selection,
-                          xlab = Xlab, ylab = Ylab,
                           plot = FALSE)
 
     # Pull the plotting data together
@@ -196,11 +151,12 @@ ggplotMDS <- function(DGEdata,
     }
 
     byShape <- FALSE
+    bySize  <- FALSE
+
     if (!missing(shapeBy)) {
         xydat$Shape <- shapeBy
         byShape <- TRUE
     }
-    bySize <- FALSE
     if (!missing(sizeBy)) {
         xydat$Size <- sizeBy
         bySize <- TRUE
@@ -208,95 +164,93 @@ ggplotMDS <- function(DGEdata,
 
     xylab <- list(paste(mds$axislabel, mds$dim.plot[[1]], sep = " "),
                   paste(mds$axislabel, mds$dim.plot[[2]], sep = " "))
-    if (!is.null(Xlab)) {
-        xylab[[1]] <- Xlab
-    }
-    if (!is.null(Ylab)) {
-        xylab[[2]] <- Ylab
-    }
-browser()
+    alabel <- paste("top ", mds$top, " genes : gene.selection = ",
+                    mds$gene.selection, sep = "")
+    # PlotType
     if (plotType == "canvasXpress") {
-        colorby = "ColorCode"
-        colors = lapply(colors, function(x){paste(c("rgba(", paste(c(paste(col2rgb(x, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")})
-        if (byShape == FALSE & bySize == FALSE) {
-            shape = symShape
-            size = symSize
+        cxShapes <- c("sphere", "square", "triangle", "star", "rhombus", "octagon", "oval", "plus", "minus", "pacman", "pacman2", "mdavid", "rect2", "pentagon", "rect3", "arc", "rectangle", "image")
 
-        } else if (byShape == TRUE & bySize == FALSE) {
-            shape = Shape
-            size = symSize
+        if (!missing(shapes)) {
+            if (is.numeric(shapes)) {
+                warning("Canvasxpress plot only accepts character array of shapes e.g c('sphere','square'). Using default shapes.")
+                shapes <- cxShapes
+            }
+        } else {
+            shapes <- cxShapes
+        }
 
+        colors <- unlist(lapply(colors, function(col){
+            paste(c("rgba(", paste(c(paste(col2rgb(col, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+            }))
+
+        colorCol <- "ColorCode"
+        shapeCol <- FALSE
+        sizeCol  <- FALSE
+
+        if (byShape == TRUE & bySize == FALSE) {
+            shapeCol <- "Shape"
         } else if (byShape == FALSE & bySize == TRUE) {
-            size = Size
-            shape = symShape
-
+            sizeCol <- "Size"
         } else if (byShape == TRUE & bySize == TRUE) {
-            shape = Shape
-            size = Size
-
+            shapeCol <- "Shape"
+            sizeCol  <- "Size"
         }
-
-
-
-        # For discrete color values
-        if (length(unique(colorBy)) <= length(colors)) {
-            mdsplot <- mdsplot +
-                scale_fill_manual(values = colors) +
-                scale_colour_manual(values = colors)
-        }
-
-        # Place an annotation on the bottom left of the plot
-        xrange <- xrange(mdsplot)
-        yrange <- yrange(mdsplot)
-        # Put the annotation 10% from xmin
-        xpos <- xrange[1] + ((xrange[2] - xrange[1]) * 0.1 )
-        alabel <- paste("top ", mds$top, " genes : gene.selection = ",
-                        mds$gene.selection, sep = "")
-        mdsplot <- mdsplot + annotate("text", x = xpos, y = yrange[1],
-                                      label = alabel, hjust = 0,
-                                      size = rel(2.5), color = "grey30")
-
-        # # Edit legend titles
-        # if (!missing(colorName)) {
-        #     mdsplot <- mdsplot + labs(color = colorName)
-        # }
-        # if (!missing(shapeName) && byShape == TRUE) {
-        #     mdsplot <- mdsplot + labs(shape = shapeName)
-        # }
-        # if (!missing(sizeName) && bySize == TRUE) {
-        #     mdsplot <- mdsplot + labs(size = shapeName)
-        # }
-        #
-        # if (tolower(themeStyle) %in% c("grey", "gray")) {
-        #     mdsplot <- mdsplot + theme_grey(baseFontSize)
-        # } else {
-        #     mdsplot <- mdsplot + theme_bw(baseFontSize)
-        # }
 
         reflineColor <- paste(c("rgba(", paste(c(paste(col2rgb(reflineColor, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-        decorations <- list()
+        decorations  <- list()
         if (!missing(hlineIntercept)) {
-            decorations <- list(line = list(list(color = reflineColor, width = reflineSize, y = hlineIntercept)))
+            decorations <- list(
+                line = list(list(color = reflineColor,
+                                 width = reflineSize,
+                                 y     = hlineIntercept)))
         }
 
         if (!missing(vlineIntercept)) {
-            decorations <- list(line = append(decorations$line, list(list(color = reflineColor, width = reflineSize, x = vlineIntercept))))
+            decorations <- list(
+                line = append(decorations$line,
+                              list(list(color = reflineColor,
+                                        width = reflineSize,
+                                        x     = vlineIntercept))))
         }
-browser()
-        canvasXpress::canvasXpress(data                    = xydat[,c("x","y")],
-                                   varAnnot                = xydat[,"ColorCode",drop=F],
-                                   decorations             = decorations,
-                                   graphType               = "Scatter2D",
-                                   colorBy                 = colorby,
-                                   colors                  = colors,
-                                   citation                = alabel,
-                                   citationScaleFontFactor = 0.8,
-                                   showDecorations         = TRUE,
-                                   title                   = title,
-                                   xAxisTitle              = xylab[[1]],
-                                   yAxisTitle              = xylab[[2]])
+
+        cx.data  <- subset(xydat, select = c(x, y))
+        var.data <- subset(xydat, select = -c(x, y), drop = FALSE)
+        events <- htmlwidgets::JS("{ 'mousemove' : function(o, e, t) {
+                                                if (o != null && o != false) {
+                                                    if (o.objectType == null && o.z.Labels != null) {
+                                                        t.showInfoSpan(e, '<b>' + o.y.vars + '</b> <br/>' +
+                                                        '<b>' + 'Label' + ': ' + o.z.Labels[0] + '</b> <br/>' +
+                                                        '<b>' + o.y.smps[0]  + '</b>' + ': ' + o.y.data[0][0] + '<br/>' +
+                                                        '<b>' + o.y.smps[1]  + '</b>' + ': ' + o.y.data[0][1]);
+                                                    } else {
+                                                        t.showInfoSpan(e, o.display);
+                                                    };
+                                                }; }}")
+
+        mdsplot <- canvasXpress::canvasXpress(data                    = cx.data,
+                                              varAnnot                = var.data,
+                                              decorations             = decorations,
+                                              graphType               = "Scatter2D",
+                                              colors                  = colors,
+                                              colorBy                 = colorCol,
+                                              shapeBy                 = shapeCol,
+                                              sizeBy                  = sizeCol,
+                                              showDecorations         = TRUE,
+                                              shapes                  = shapes,
+                                              title                   = title,
+                                              xAxisTitle              = xylab[[1]],
+                                              yAxisTitle              = xylab[[2]],
+                                              citation                = alabel,
+                                              citationScaleFontFactor = 0.8,
+                                              events                  = events)
 
     } else {
+        # Shapes: solid circle, square, triangle, diamond, open circle, square, triangle, diamond
+        ggShapes = c(16, 15, 17, 18, 21, 22, 24, 23)
+        if (missing(shapes)) {
+            shapes <- ggShapes
+        }
+
         if (byShape == FALSE & bySize == FALSE) {
             mdsplot <- ggplot(xydat, aes(x = x, y = y, color = ColorCode)) +
                 geom_point(shape = symShape, size = symSize, alpha = alpha)
@@ -342,8 +296,6 @@ browser()
         yrange <- yrange(mdsplot)
         # Put the annotation 10% from xmin
         xpos <- xrange[1] + ((xrange[2] - xrange[1]) * 0.1 )
-        alabel <- paste("top ", mds$top, " genes : gene.selection = ",
-                        mds$gene.selection, sep = "")
         mdsplot <- mdsplot + annotate("text", x = xpos, y = yrange[1],
                                       label = alabel, hjust = 0,
                                       size = rel(2.5), color = "grey30")
@@ -357,23 +309,6 @@ browser()
             mdsplot <- mdsplot + geom_vline(xintercept = vlineIntercept,
                                             color = reflineColor,
                                             size = reflineSize)
-        }
-
-        # Edit legend titles
-        if (!missing(colorName)) {
-            mdsplot <- mdsplot + labs(color = colorName)
-        }
-        if (!missing(shapeName) && byShape == TRUE) {
-            mdsplot <- mdsplot + labs(shape = shapeName)
-        }
-        if (!missing(sizeName) && bySize == TRUE) {
-            mdsplot <- mdsplot + labs(size = shapeName)
-        }
-
-        if (tolower(themeStyle) %in% c("grey", "gray")) {
-            mdsplot <- mdsplot + theme_grey(baseFontSize)
-        } else {
-            mdsplot <- mdsplot + theme_bw(baseFontSize)
         }
     }
 
@@ -395,7 +330,6 @@ browser()
 #' @param barFill Default = "dodgerblue3"
 #' @param barWidth Range 0-1. (Default = 0.65)
 #' @param barSize Thickness of the fill border (Default = 0.1)
-#' @param baseFontSize Base font size for the plot (Default = 14)
 #'
 #' @return A list with two ggplots and the variance explained data.frame.
 #'
@@ -424,8 +358,7 @@ MDS_var_explained <- function(mds,
                               barColor="dodgerblue4",
                               barFill = "dodgerblue3",
                               barWidth = 0.65,
-                              barSize = 0.1,
-                              baseFontSize = 14) {
+                              barSize = 0.1) {
 
     assertthat::assert_that(!missing(mds),
                             msg = "mds is required and must be specified.")
@@ -471,8 +404,7 @@ MDS_var_explained <- function(mds,
         labs(title = "Variance Explained by MDS Dimensions",
              x = "MDS dimension",
              y = "Variance Explained") +
-        scale_x_continuous(breaks = setBreaks) +
-        theme_grey(baseFontSize)
+        scale_x_continuous(breaks = setBreaks)
 
     # Cumulative variance plot (change the y dimension and relabel)
     resultList$cumvar <- resultList$varexp + aes(y = cumvar) +

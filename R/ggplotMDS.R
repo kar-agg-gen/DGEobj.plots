@@ -56,7 +56,8 @@
 #' }
 #'
 #' @import ggplot2 magrittr ggrepel
-#' @import canvasXpress canvasXpress
+#' @importFrom canvasXpress canvasXpress
+#' @importFrom htmlwidgets JS
 #' @importFrom assertthat assert_that
 #' @importFrom limma plotMDS
 #' @importFrom stats as.dist
@@ -80,10 +81,7 @@ ggplotMDS <- function(DGEdata,
                       alpha = 0.7,
                       shapes,
                       colors,
-                      dim.plot = c(1, 2),
-                      colorName,
-                      shapeName,
-                      sizeName) {
+                      dim.plot = c(1, 2)) {
 
     # Default labels to colnames of DGEdata
     addLabels <- TRUE
@@ -104,8 +102,8 @@ ggplotMDS <- function(DGEdata,
 
     assertthat::assert_that(class(DGEdata) %in% c("DGEobj", "DGEList", "matrix"),
                             msg = "DGEdata must be of class 'DGEList', 'DGEobj', or 'matrix'.")
-    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
-                            msg = "Plot type must be either ggplot or canvasXpress.")
+    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+                            msg = "Plot type must be either canvasXpress or ggplot.")
 
     if ("DGEobj" %in% class(DGEdata)) {
         DGEdata <- DGEobj::getItem(DGEdata, "DGEList")
@@ -324,6 +322,7 @@ ggplotMDS <- function(DGEdata,
 #'
 #' @param mds A class MDS object from limma::plotMDS() or a data matrix to analyze
 #'   (typically log2) (required)
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
 #' @param topN The number of dimensions to plot (Default = 10)
 #' @param cumVarLimit The maximum cumulative variance to plot. Range 0-1. (Default = 0.9)
 #' @param barColor Default = "dodgerblue4"
@@ -350,9 +349,11 @@ ggplotMDS <- function(DGEdata,
 #' @importFrom assertthat assert_that
 #' @importFrom limma plotMDS
 #' @importFrom stats cmdscale var
+#' @importFrom canvasXpress canvasXpress
 #'
 #' @export
 MDS_var_explained <- function(mds,
+                              plotType = "canvasXpress",
                               topN = 10,
                               cumVarLimit = 0.9,
                               barColor="dodgerblue4",
@@ -362,6 +363,8 @@ MDS_var_explained <- function(mds,
 
     assertthat::assert_that(!missing(mds),
                             msg = "mds is required and must be specified.")
+    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+                            msg = "Plot type must be either canvasXpress or ggplot.")
 
     if (!("MDS" %in% class(mds))) {
         mds <- limma::plotMDS(mds, plot = FALSE)
@@ -393,25 +396,54 @@ MDS_var_explained <- function(mds,
         seq(from = low, to = high, by = 1)
     }
 
-    resultList <- list()
-    # Fraction variance for each dimension
-    resultList$varexp <- ggplot(plotdat) +
-        aes(x = dim, y = var) +
-        geom_col(color = barColor,
-                 fill = barFill,
-                 size = barSize,
-                 width = barWidth) +
-        labs(title = "Variance Explained by MDS Dimensions",
-             x = "MDS dimension",
-             y = "Variance Explained") +
-        scale_x_continuous(breaks = setBreaks)
+    resultList   <- list()
+    varexp_title <- "Variance Explained by MDS Dimensions"
+    cumvar_title <- "Cumulative Variance Explained by MDS Dimensions"
 
-    # Cumulative variance plot (change the y dimension and relabel)
-    resultList$cumvar <- resultList$varexp + aes(y = cumvar) +
-        labs(title = "Cumulative Variance Explained by MDS Dimensions",
-             y = "Cumulative Variance Explained") +
-        ylim(0,1)
+    xlab    <- "MDS dimension"
+    ylab_ve <- "Variance Explained"
+    ylab_cv <- "Cumulative Variance Explained"
 
+    if (plotType == "canvasXpress") {
+        rownames(plotdat) <- rownames(mdsvals[idx,][1:topN,])
+        cx.data <- as.data.frame(t(plotdat))
+
+        resultList$varexp <- canvasXpress::canvasXpress(data             = cx.data["var", ],
+                                                        graphOrientation = "vertical",
+                                                        graphType        = "Bar",
+                                                        showLegend       = FALSE,
+                                                        colors           = barColor,
+                                                        title            = varexp_title,
+                                                        xAxisTitle       = xlab,
+                                                        smpTitle         = ylab_ve)
+
+        resultList$cumvar <- canvasXpress::canvasXpress(data             = cx.data["cumvar", ],
+                                                        graphOrientation = "vertical",
+                                                        graphType        = "Bar",
+                                                        showLegend       = FALSE,
+                                                        colors           = barColor,
+                                                        title            = cumvar_title,
+                                                        xAxisTitle       = xlab,
+                                                        smpTitle         = ylab_cv)
+    } else {
+        # Fraction variance for each dimension
+        resultList$varexp <- ggplot(plotdat) +
+            aes(x = dim, y = var) +
+            geom_col(color = barColor,
+                     fill = barFill,
+                     size = barSize,
+                     width = barWidth) +
+            labs(title = varexp_title,
+                 x = xlab,
+                 y = ylab_ve) +
+            scale_x_continuous(breaks = setBreaks)
+
+        # Cumulative variance plot (change the y dimension and relabel)
+        resultList$cumvar <- resultList$varexp + aes(y = cumvar) +
+            labs(title = cumvar_title,
+                 y = ylab_cv) +
+            ylim(0,1)
+    }
     # Return the full data table too
     resultList$var_explained <- var_explained
 

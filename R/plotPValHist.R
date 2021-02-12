@@ -5,12 +5,9 @@
 #' but should be useful for any dataframe of numeric columns.
 #'
 #' @param P.Val A matrix or dataframe of numeric data; col = samples
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
 #' @param facet Set to FALSE to print individual plots instead of a faceted plot. (Default = TRUE)
 #' @param binWidth Range is always 0-1 for p-values. (Default = 0.02)
-#' @param baseFontSize Set the base font size for the plot using theme_grey. (Default = 12)
-#' @param facetFontSize Control font size on the individual plot headers
-#'   (default = NULL). 10 seems good for knitr output (dependent on length of
-#'   sample titles). Bigger (e.g. 14) works better for PPT.
 #' @param alpha Set the transparency. (Default = 0.6)
 #' @param color Color for the histogram outline. (Default = "dodgerblue3")
 #' @param fill Fill color for the histogram. (Default = "dodgerblue3")
@@ -24,22 +21,24 @@
 #'    plotPvalHist(MyPvalMatrix)
 #'
 #'    # Use some custom arguments
-#'    myplot <- plotPvalHist(MyPValMatrix,
-#'                           facetFontSize = 14)
+#'    myplot <- plotPvalHist(MyPValMatrix)
 #' }
 #'
 #' @import ggplot2
 #' @importFrom dplyr filter
+#' @importFrom canvasXpress canvasXpress
 #'
 #' @export
 plotPvalHist <- function(P.Val,
+                         plotType = "canvasXpress",
                          facet = TRUE,
                          binWidth = 0.02,
-                         baseFontSize = 12,
-                         facetFontSize = NULL,
                          alpha = 0.6,
                          color = "dodgerblue3",
                          fill = "dodgerblue3") {
+
+    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+                            msg = "Plot type must be either canvasXpress or ggplot.")
 
     if (is.matrix(P.Val)) {
         P.Val <- P.Val %>%
@@ -60,50 +59,80 @@ plotPvalHist <- function(P.Val,
                              times         = SampNames,
                              new.row.names = sequence(prod(length(SampNames), nrow(P.Val))))
 
-    if (facet) {
-        numcol <- 3
-        numrow <- (NumSamples / numcol) %>% ceiling
+    title <- "P-value Histograms"
+    plotlist <- list()
+    if (plotType == "canvasXpress") {
+        if (facet) {
+            cx.data <- subset(P.Val, select = Pval)
+            var.annot <- subset(P.Val, select = -c(Pval))
+            plotlist <- canvasXpress::canvasXpress(data                    = cx.data,
+                                                   varAnnot                = var.annot,
+                                                   histogramData           = TRUE,
+                                                   graphType               = "Scatter2D",
+                                                   histogramBins           = binWidth,
+                                                   colors                  = color,
+                                                   title                   = title,
+                                                   xAxisTitle              = "P-value",
+                                                   yAxisTitle              = "Count",
+                                                   hideHistogram           = FALSE,
+                                                   showHistogramDensity    = FALSE,
+                                                   showLegend              = FALSE,
+                                                   segregateVariablesBy    = list("Levels"))
+        } else {
+            for (i in 1:NumSamples) {
+                s <- SampNames[i]
+                MyPVal <- dplyr::filter(P.Val, grepl(s, Levels))
+                cx.data <- subset(MyPVal, select = Pval)
+                var.annot <- subset(MyPVal, select = -c(Pval))
+                Hist_Pval <- canvasXpress::canvasXpress(data                    = cx.data,
+                                                        varAnnot                = var.annot,
+                                                        histogramData           = TRUE,
+                                                        graphType               = "Scatter2D",
+                                                        histogramBins           = binWidth,
+                                                        colors                  = color,
+                                                        title                   = paste(title, "\n", s),
+                                                        xAxisTitle              = "P-value",
+                                                        yAxisTitle              = "Count",
+                                                        hideHistogram           = FALSE,
+                                                        showHistogramDensity    = FALSE,
+                                                        showLegend              = FALSE,
+                                                        segregateVariablesBy    = list("Levels"))
 
-        Hist_Pval_Facet <- ggplot2::ggplot(data = P.Val, aes(x = Pval)) +
-            ggplot2::geom_histogram(alpha = alpha,
-                                    fill = fill,
-                                    color = color,
-                                    binwidth = binWidth) +
-            ggplot2::xlab("P-value") +
-            ggplot2::ylab("Count") +
-            ggtitle("P-value Histograms") +
-            ggplot2::scale_fill_brewer(palette = "Set1") +
-            ggplot2::facet_wrap(~Levels, nrow = numrow, scales = "free") +
-            theme_grey() + baseTheme(baseFontSize)
-
-        if (!is.null(facetFontSize)) {
-            Hist_Pval_Facet <- Hist_Pval_Facet +
-                theme(strip.text.x = element_text(size = facetFontSize,
-                                                  colour = "red", angle = 0))
+                plotlist[[i]] = Hist_Pval
+            }
         }
-
-        return(Hist_Pval_Facet)
-
     } else {
-        # Run off the plots
-        plotlist = list()
-        for (i in 1:NumSamples) {
-            s <- SampNames[i]
-            MyPVal <- dplyr::filter(P.Val, grepl(s, Levels))
+        if (facet) {
+            numcol <- 3
+            numrow <- (NumSamples / numcol) %>% ceiling
 
-            Hist_Pval <- ggplot2::ggplot(data = MyPVal, aes(x = Pval)) +
+            plotlist <- ggplot2::ggplot(data = P.Val, aes(x = Pval)) +
                 ggplot2::geom_histogram(alpha = alpha,
                                         fill = fill,
                                         color = color,
                                         binwidth = binWidth) +
                 ggplot2::xlab("P-value") +
                 ggplot2::ylab("Count") +
-                ggplot2::ggtitle(paste("P-value Histogram\n", s)) +
-                theme_grey() + baseTheme(baseFontSize)
+                ggtitle(title) +
+                ggplot2::scale_fill_brewer(palette = "Set1") +
+                ggplot2::facet_wrap(~Levels, nrow = numrow, scales = "free")
+        } else {
+            for (i in 1:NumSamples) {
+                s <- SampNames[i]
+                MyPVal <- dplyr::filter(P.Val, grepl(s, Levels))
 
-            plotlist[[i]] = Hist_Pval
+                Hist_Pval <- ggplot2::ggplot(data = MyPVal, aes(x = Pval)) +
+                    ggplot2::geom_histogram(alpha = alpha,
+                                            fill = fill,
+                                            color = color,
+                                            binwidth = binWidth) +
+                    ggplot2::xlab("P-value") +
+                    ggplot2::ylab("Count") +
+                    ggplot2::ggtitle(paste(title, "\n", s))
 
+                plotlist[[i]] = Hist_Pval
+            }
         }
-        return(plotlist)
     }
+    return(plotlist)
 }

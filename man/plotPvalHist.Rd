@@ -6,10 +6,9 @@
 \usage{
 plotPvalHist(
   P.Val,
+  plotType = "canvasXpress",
   facet = TRUE,
   binWidth = 0.02,
-  baseFontSize = 12,
-  facetFontSize = NULL,
   alpha = 0.6,
   color = "dodgerblue3",
   fill = "dodgerblue3"
@@ -18,15 +17,11 @@ plotPvalHist(
 \arguments{
 \item{P.Val}{A matrix or dataframe of numeric data; col = samples}
 
+\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
+
 \item{facet}{Set to FALSE to print individual plots instead of a faceted plot. (Default = TRUE)}
 
 \item{binWidth}{Range is always 0-1 for p-values. (Default = 0.02)}
-
-\item{baseFontSize}{Set the base font size for the plot using theme_grey. (Default = 12)}
-
-\item{facetFontSize}{Control font size on the individual plot headers
-(default = NULL). 10 seems good for knitr output (dependent on length of
-sample titles). Bigger (e.g. 14) works better for PPT.}
 
 \item{alpha}{Set the transparency. (Default = 0.6)}
 
@@ -49,8 +44,7 @@ but should be useful for any dataframe of numeric columns.
    plotPvalHist(MyPvalMatrix)
 
    # Use some custom arguments
-   myplot <- plotPvalHist(MyPValMatrix,
-                          facetFontSize = 14)
+   myplot <- plotPvalHist(MyPValMatrix)
 }
 
 }

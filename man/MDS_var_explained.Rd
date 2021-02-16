@@ -6,18 +6,20 @@
 \usage{
 MDS_var_explained(
   mds,
+  plotType = "canvasXpress",
   topN = 10,
   cumVarLimit = 0.9,
   barColor = "dodgerblue4",
   barFill = "dodgerblue3",
   barWidth = 0.65,
-  barSize = 0.1,
-  baseFontSize = 14
+  barSize = 0.1
 )
 }
 \arguments{
 \item{mds}{A class MDS object from limma::plotMDS() or a data matrix to analyze
 (typically log2) (required)}
+
+\item{plotType}{Plot type must be canvasXpress or ggplot (Default to canvasXpress).}
 
 \item{topN}{The number of dimensions to plot (Default = 10)}
 
@@ -30,8 +32,6 @@ MDS_var_explained(
 \item{barWidth}{Range 0-1. (Default = 0.65)}
 
 \item{barSize}{Thickness of the fill border (Default = 0.1)}
-
-\item{baseFontSize}{Base font size for the plot (Default = 14)}
 }
 \value{
 A list with two ggplots and the variance explained data.frame.

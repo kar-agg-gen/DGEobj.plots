@@ -161,3 +161,27 @@ cxSupportedLineFit <- function(linefit) {
 
     return(linefit)
 }
+
+rgbaConversion <- function(color, alpha = 0.5){
+    rgbaVal <- paste(c(col2rgb(color), alpha), collapse = ",")
+    rgbaStr <- paste0("rgba(", rgbaVal, ")")
+    return(rgbaStr)
+}
+
+getCxPlotDecorations <- function(decorations, color, width, x, y) {
+    line <- list(color = color,
+                 width = width)
+    if (!missing(x) && !missing(y)) {
+        line <- append(line, list(x  = x,
+                                  x2 = y,
+                                  y  = x,
+                                  y2 = y))
+    } else if (!missing(x)) {
+        line <- append(line, list(x = x))
+    } else if (!missing(y)) {
+        line <- append(line, list(y = y))
+    }
+
+    decorations <- list(line = append(decorations$line, list(line)))
+    return(decorations)
+}

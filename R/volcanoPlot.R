@@ -188,9 +188,7 @@ volcanoPlot <- function(contrastDF,
 
     # plotType
     if (plotType == "canvasXpress") {
-        symbolFill[1] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[1], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-        symbolFill[2] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[2], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-        symbolFill[3] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[3], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        symbolFill <- sapply(symbolFill, rgbaConversion, alpha = alpha, USE.NAMES = FALSE)
 
         ## Create the canvasXpress cx.data and var.annot
         cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
@@ -226,19 +224,22 @@ volcanoPlot <- function(contrastDF,
             sizeByShowLegend <- TRUE
         }
         if (!is.null(pthresholdLine)) {
-            pthresholdLine <- paste(c("rgba(", paste(c(paste(col2rgb(pthresholdLine, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-            decorations <- list(line = list(list(color = pthresholdLine, width = refLineThickness, y = -log10(pthreshold))))
+            pthresholdLine <- rgbaConversion(pthresholdLine, alpha = alpha)
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color = pthresholdLine,
+                                                width = refLineThickness,
+                                                x     = -log10(pthreshold))
         }
 
         if (!is.null(foldChangeLines)) {
-            decorations <- list(
-                line = append(decorations$line,
-                              list(list(color = symbolFill[which(groupNames == "Increased")],
-                                        width = refLineThickness,
-                                        x     = foldChangeLines),
-                                   list(color = symbolFill[which(groupNames == "Decreased")],
-                                        width = refLineThickness,
-                                        x     = -1*foldChangeLines))))
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color = symbolFill[which(groupNames == "Increased")],
+                                                width = refLineThickness,
+                                                x     = foldChangeLines)
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color = symbolFill[which(groupNames == "Decreased")],
+                                                width = refLineThickness,
+                                                x     = -1*foldChangeLines)
         }
 
         # Assign null if footnote is missing

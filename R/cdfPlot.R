@@ -188,8 +188,11 @@ cdfPlot <- function(contrastDF,
 
         decorations <- list()
         if (!is.null(referenceLine)) {
-            referenceLine <- paste(c("rgba(", paste(c(paste(col2rgb(referenceLine, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-            decorations <- list(line = list(list(color = referenceLine, width = refLineThickness, y = pThreshold)))
+            referenceLine <- rgbaConversion(referenceLine, alpha = alpha)
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color = referenceLine,
+                                                width = refLineThickness,
+                                                y     = pThreshold)
         }
 
         # Footnote

@@ -188,9 +188,7 @@ profilePlot <- function(contrastDF,
 
     # plotType
     if (plotType == "canvasXpress") {
-        symbolFill[1] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[1], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-        symbolFill[2] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[2], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-        symbolFill[3] <- paste(c("rgba(", paste(c(paste(col2rgb(symbolFill[3], alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+        symbolFill <- sapply(symbolFill, rgbaConversion, alpha = alpha, USE.NAMES = FALSE)
 
         ## Create the canvasXpress df and var annotation
         cx.data <- data.frame(a = contrastDF[colnames(contrastDF) == x],
@@ -226,26 +224,29 @@ profilePlot <- function(contrastDF,
         }
 
         if (!is.null(referenceLine)) {
-            referenceLine <- paste(c("rgba(", paste(c(paste(col2rgb(referenceLine, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
-            decorations <- list(line = list(list(color = referenceLine, width = refLineThickness, y = 0)))
+            referenceLine <- rgbaConversion(referenceLine, alpha = alpha)
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color = referenceLine,
+                                                width = refLineThickness,
+                                                y     = 0)
         }
 
         if (!is.null(foldChangeLines)) {
-            decorations <- list(line = append(decorations$line, list(list(color = symbolFill[which(groupNames == "Increased")],
-                                                                          width = refLineThickness,
-                                                                          y     = foldChangeLines),
-                                                                     list(color = symbolFill[which(groupNames == "Decreased")],
-                                                                          width = refLineThickness,
-                                                                          y     = -foldChangeLines)
-
-            )))
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color       = symbolFill[which(groupNames == "Increased")],
+                                                width       = refLineThickness,
+                                                y           = foldChangeLines)
+            decorations <- getCxPlotDecorations(decorations = decorations,
+                                                color       = symbolFill[which(groupNames == "Decreased")],
+                                                width       = refLineThickness,
+                                                y           = -1*foldChangeLines)
         }
 
         showLoessFit <- FALSE
         afterRender <- NULL
         if (!is.null(lineFitType)) {
             lineFitType <- cxSupportedLineFit(lineFitType)
-            lineFitColor <- paste(c("rgba(", paste(c(paste(col2rgb(lineFitColor, alpha = FALSE), collapse = ","), 0.5), collapse = ","), ")"), collapse = "")
+            lineFitColor <- rgbaConversion(lineFitColor, alpha = alpha)
 
             if (lineFitType == "lm") {
                 afterRender <- list(list("addRegressionLine"))

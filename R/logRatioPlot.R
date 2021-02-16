@@ -7,6 +7,7 @@
 #' ggplots, one for each facetColname value (typically gene).
 #'
 #' @param contrastsDF A tidy dataframe of data to plot (Required) (see ?tidyContrasts).
+#' @param plotType Plot type must be canvasXpress or ggplot (Default to canvasXpress).
 #' @param facetColname Define the column name to separate plots (Required) (e.g. GeneID).
 #' @param xColname Define the column name to group boxplots by (Required) (e.g. Contrast).
 #' @param yColname Define the column name for the output of the boxplots (Default = "logFC")
@@ -15,7 +16,7 @@
 #' @param xOrder Define the order for the groups in each plot.  Should
 #'   contain values in unique(contrastsDF$group) listed in the order that
 #'   groups should appear in the plot. (Optional; Default = unique(contrastsDF[xColname]))
-#' @param plotType One of "bar" or "point" (Default = "bar")
+#' @param plotCategory One of "bar" or "point" (Default = "bar")
 #' @param refLine Adds a horizontal line at y = 0 (Default = TRUE)
 #' @param refLineColor Color for the reference line (Default = "red")
 #' @param xlab X axis label (Defaults to xColname)
@@ -99,13 +100,14 @@
 #'
 #' @export
 logRatioPlot <- function(contrastsDF,
+                         plotType = "canvasXpress",
                          facetColname,
                          xColname,
                          yColname = "logFC",
                          CI.R_colname = "CI.R",
                          CI.L_colname = "CI.L",
                          xOrder = unique(as.character(contrastsDF[xColname, , drop = TRUE])),
-                         plotType = "bar",
+                         plotCategaory = "bar",
                          refLine = TRUE,
                          refLineColor = "red",
                          xlab = xColname, ylab = yColname,
@@ -132,18 +134,18 @@ logRatioPlot <- function(contrastsDF,
                          xAngle = 45,
                          scales = "free_y") {
 
-    assertthat::assert_that(plotType %in% c("bar", "point"),
-                            msg = "plotType must be either 'bar' or 'point'.")
+    assertthat::assert_that(plotCategaory %in% c("bar", "point"),
+                            msg = "plotCategaory must be either 'bar' or 'point'.")
 
     .addGeoms <- function(myPlot){
-        if (tolower(plotType) == "bar") {
+        if (tolower(plotCategaory) == "bar") {
             myPlot <- myPlot + geom_bar(stat = "identity",
                                         alpha = barAlpha,
                                         color = barColor,
                                         fill = barFill,
                                         size = barSize,
                                         width = barWidth)
-        } else if (tolower(plotType) == "point") {
+        } else if (tolower(plotCategaory) == "point") {
             myPlot <- myPlot + geom_point(alpha = pointAlpha,
                                           color = pointColor,
                                           fill = pointFill,
@@ -182,6 +184,11 @@ logRatioPlot <- function(contrastsDF,
     assertthat::assert_that(all(xOrder %in% as.character(contrastsDF[xColname, , drop = TRUE])))
 
     # Plot code here
+    # if (plotType == "canvasXpress") {
+    #
+    # } else {
+    #
+    # }
     if (facet) {
         # Set facet columns to sqrt of unique observations (rounded up)
         if (missing(facetCol)) {
@@ -189,7 +196,7 @@ logRatioPlot <- function(contrastsDF,
         } else {
             numcol = facetCol
         }
-
+browser()
         myPlot <- ggplot2::ggplot(contrastsDF, aes_string(x = xColname, y = yColname))
         myPlot <- .addGeoms(myPlot)
         facetFormula <- stringr::str_c("~", facetColname, sep = " ")

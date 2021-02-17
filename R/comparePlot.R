@@ -55,7 +55,6 @@
 #' @param footnote Optional string placed right justified at bottom of plot.
 #' @param footnoteSize Applies to footnote. (Default = 3)
 #' @param footnoteColor Applies to footnote. (Default = "black")
-#' @param footnoteJust Value 0-1. 0 is left justified, 1 is right justified, 0.5 is centered. (Default = 1)
 #'
 #' @return canvasxpress or ggplot object based on plotType selection
 #'
@@ -94,7 +93,8 @@
 comparePlot <- function(compareDF,
                         plotType = "canvasXpress",
                         pThreshold = 0.01,
-                        xlab = NULL, ylab = NULL,
+                        xlab = NULL,
+                        ylab = NULL,
                         title = NULL,
                         symbolSize = c(10, 10, 10, 4),
                         symbolShape = c(21, 21, 21, 20),
@@ -107,14 +107,13 @@ comparePlot <- function(compareDF,
                         legendPosition = "right",
                         footnote,
                         footnoteSize = 3,
-                        footnoteColor = "black",
-                        footnoteJust = 1
+                        footnoteColor = "black"
 ) {
     set.seed(1954)
     assertthat::assert_that(sum(apply(compareDF, 2, FUN = is.numeric)) >= 2,
                             msg = "Need at least two numeric columns in compareDF.")
-    assertthat::assert_that(plotType %in% c("ggplot", "canvasXpress"),
-                            msg = "Plot type must be either ggplot or canvasXpress.")
+    assertthat::assert_that(plotType %in% c("canvasXpress", "ggplot"),
+                            msg = "Plot type must be either canvasXpress or ggplot.")
     assertthat::assert_that(length(symbolSize) == 4,
                             length(symbolShape) == 4,
                             length(symbolColor) == 4,
@@ -172,11 +171,12 @@ comparePlot <- function(compareDF,
 
         if (!is.null(referenceLine)) {
             referenceLine <- rgbaConversion(referenceLine, alpha = alpha)
+            y_range <- range(subset(compareDF, select = c(ylabel), drop = TRUE), na.rm = TRUE)
             decorations <- getCxPlotDecorations(decorations = decorations,
                                                 color       = referenceLine,
                                                 width       = refLineThickness,
-                                                x           = -10,
-                                                y           = 10)
+                                                x           = ceiling(y_range[1]),
+                                                y           = floor(y_range[2]))
         }
 
         if (missing(footnote)) {
@@ -228,11 +228,11 @@ comparePlot <- function(compareDF,
                           symbolColor = symbolColor,
                           symbolFill = symbolFill,
                           stringsAsFactors = FALSE)
-        compareDF$group <- factor(x = compareDF$group, levels = levels)
         # Used to set uniform square scale
         scalemax <- compareDF[, 1:2] %>% as.matrix %>% abs %>% max %>% multiply_by(1.05)
 
         if (sigMeasurePlot) {
+            compareDF$group <- factor(x = compareDF$group, levels = levels)
             CompPlot <- ggplot(compareDF, aes_string(x = xlabel, y = ylabel)) +
                 aes(shape = group, size = group,
                     color = group, fill = group,
@@ -252,7 +252,7 @@ comparePlot <- function(compareDF,
                 # Box around the legend
                 theme(legend.background = element_rect(fill = "gray95", size = .5, linetype = "dotted"))
         } else {
-            CompPlot <- ggplot(compareDF, aes_string(x = label, y = label)) +
+            CompPlot <- ggplot(compareDF, aes_string(x = xlabel, y = ylabel)) +
                 geom_point(shape = 1,
                            size = ssc$symbolSize[ssc$group == "X Unique"],
                            color = ssc$symbolFill[ssc$group == "X Unique"],
@@ -295,7 +295,6 @@ comparePlot <- function(compareDF,
                                     footnoteText = footnote,
                                     footnoteSize = footnoteSize,
                                     footnoteColor = footnoteColor,
-                                    footnoteJust = footnoteJust,
                                     yoffset = 0.05)
         }
     }

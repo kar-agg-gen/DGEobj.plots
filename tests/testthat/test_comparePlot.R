@@ -8,17 +8,36 @@ test_that("comparePlot.R: comparePlot()", {
     # Capture the default logFC and P.Value
     compareDat <- comparePrep(contrastList)
 
-    # Draw the plot
+    ## canvasXpress plot testing
     cPlot <- comparePlot(compareDat)
     expect_s3_class(cPlot , c("canvasXpress", "htmlwidget"))
 
-    # Draw the plot
+    # testing function with compareDat without significance measures supplied
+    cPlot <- comparePlot(compareDat[, 1:2])
+    expect_s3_class(cPlot , c("canvasXpress", "htmlwidget"))
+
+    # testing aesthetics of plots
+    cPlot <- comparePlot(compareDat,
+                         pThreshold = 0.001,
+                         title    = "MyPlot",
+                         xlab     = "xaxis-title",
+                         ylab     = "yaxis-title",
+                         symbolSize = c(5, 5, 2, 2),
+                         symbolShape = c(21, 21, 21, 20),
+                         symbolFill = c("red", "blue", "yellow", "grey25"),
+                         alpha = 0.5,
+                         crosshair = "grey50",
+                         referenceLine = "darkgoldenrod1",
+                         refLineThickness = 1,
+                         legendPosition = "right",
+                         footnote = "This is my footnote")
+    expect_s3_class(cPlot , c("canvasXpress", "htmlwidget"))
+
+    ## ggplot plot testing
     cPlot <- comparePlot(compareDat, plotType = "ggplot")
     expect_s3_class(cPlot , c("gg", "ggplot"))
 
-    # testing function with df without significance measures supplied
-    cPlot <- comparePlot(compareDat[,1:2])
-    expect_s3_class(cPlot , c("canvasXpress", "htmlwidget"))
+
 
     cPlot <- comparePlot(compareDat[,1:2], plotType = "ggplot")
     expect_s3_class(cPlot , c("gg", "ggplot"))
@@ -26,9 +45,18 @@ test_that("comparePlot.R: comparePlot()", {
     # testing aesthetics of plots
     cPlot <- comparePlot(compareDat,
                          plotType = "ggplot",
+                         pThreshold = 0.001,
                          title    = "MyPlot",
                          xlab     = "xaxis-title",
                          ylab     = "yaxis-title",
+                         symbolSize = c(5, 5, 2, 2),
+                         symbolShape = c(21, 21, 21, 20),
+                         symbolFill = c("red", "blue", "yellow", "grey25"),
+                         alpha = 0.5,
+                         crosshair = "grey50",
+                         referenceLine = "darkgoldenrod1",
+                         refLineThickness = 1,
+                         legendPosition = "right",
                          footnote = "This is my footnote")
     expect_setequal(unlist(cPlot$labels[c("title","y", "x")]), c("MyPlot", "yaxis-title", "xaxis-title"))
     expect_setequal(cPlot$layers[[2]]$aes_params$colour, "grey50")
@@ -39,7 +67,7 @@ test_that("comparePlot.R: comparePlot()", {
     expect_error(comparePlot(t_obj1$design),
                  regexp = "Need at least two numeric columns in compareDF.")
     expect_error(comparePlot(compareDat, plotType = "cx"),
-                 regexp = "Plot type must be either ggplot or canvasXpress.")
+                 regexp = "Plot type must be either canvasXpress or ggplot.")
 
     # failing function with Symbol argument length < 4
     expect_error(comparePlot(compareDat, symbolSize = 1),
